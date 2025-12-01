@@ -1,0 +1,11 @@
+-- Table for Roles
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+INSERT INTO roles (name) VALUES 
+('SYSTEM_ADMIN'),
+('CATALOG_MANAGER'),
+('PROJECT_MANAGER'),
+('READER');
