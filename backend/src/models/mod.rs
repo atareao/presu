@@ -7,5 +7,6 @@ mod role;
 mod unit;
 mod user;
 mod version;
+mod budget;
 
 type UtcTimestamp = chrono::DateTime<chrono::Utc>;

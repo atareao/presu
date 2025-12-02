@@ -13,8 +13,6 @@ pub struct Unit {
     pub base_formula: String, 
     // Mapea el JSONB de parámetros esperados
     pub expected_params_json: Value, 
-
-    // Campos de Auditoría
     pub created_at: UtcTimestamp,
     pub updated_at: UtcTimestamp,
     pub created_by: i32, 
