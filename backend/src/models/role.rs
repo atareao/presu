@@ -11,14 +11,13 @@ pub struct Role {
     pub id: i32,
     pub name: String, // Contendrá valores como "SYSTEM_ADMIN", "PROJECT_MANAGER", etc.
 }
-/*
 pub async fn create_role(pool: &PgPool, name: String) -> Result<Role> {
     sqlx::query_as!(
         Role,
         r#"
         INSERT INTO roles (name)
         VALUES ($1)
-        RETURNING id, name
+        RETURNING *
         "#,
         name
     )
@@ -79,7 +78,6 @@ pub async fn delete_role(pool: &PgPool, id: i32) -> Result<Role> {
         "#,
         id
     )
-    .execute(pool)
+    .fetch_one(pool)
     .await
 }
-*/

@@ -11,4 +11,3 @@ BEGIN
    RETURN NEW;
 END;
 $$ language 'plpgsql';
--- Add up migration script here

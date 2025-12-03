@@ -6,7 +6,7 @@ CREATE TABLE users (
     hashed_password VARCHAR NOT NULL,
     -- Foreign key to the roles table
     role_id INTEGER NOT NULL REFERENCES roles(id), 
-    is_active BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     -- Audit Fields (in UTC)
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
