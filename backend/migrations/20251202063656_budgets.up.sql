@@ -11,6 +11,6 @@ CREATE TABLE budgets (
     UNIQUE (project_id, version_number)
 );
 
-CREATE TRIGGER set_updated_at_budget_versions
-BEFORE UPDATE ON budget_versions
+CREATE TRIGGER set_updated_at_budgets
+BEFORE UPDATE ON budgets
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();

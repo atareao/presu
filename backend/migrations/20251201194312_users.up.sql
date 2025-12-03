@@ -13,7 +13,7 @@ CREATE TABLE users (
     -- Self-referencing audit keys
     created_by INTEGER NOT NULL REFERENCES users(id),
     updated_by INTEGER NOT NULL REFERENCES users(id)
-)
+);
 -- Trigger for 'users'
 CREATE TRIGGER set_updated_at_users
 BEFORE UPDATE ON users
