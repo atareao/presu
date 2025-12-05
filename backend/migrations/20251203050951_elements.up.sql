@@ -5,6 +5,7 @@ CREATE TABLE elements (
     parent_id INTEGER REFERENCES elements(id), 
     version_id INTEGER NOT NULL REFERENCES versions(id), 
     element_type element_type_enum NOT NULL, 
+    code VARCHAR(50) NOT NULL UNIQUE,
     budget_code VARCHAR(50) NOT NULL,
     description TEXT,
     -- Audit Fields
@@ -12,7 +13,7 @@ CREATE TABLE elements (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
     created_by INTEGER NOT NULL REFERENCES users(id),
     updated_by INTEGER NOT NULL REFERENCES users(id),
-    UNIQUE (budget_id, parent_id, budget_code)
+    UNIQUE (budget_id, budget_code)
 );
 
 CREATE TRIGGER set_updated_at_elements
