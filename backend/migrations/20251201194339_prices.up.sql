@@ -2,7 +2,7 @@
 CREATE TABLE prices (
     id SERIAL PRIMARY KEY,
     version_id INTEGER NOT NULL REFERENCES versions(id),
-    code VARCHAR(50) NOT NULL,
+    code VARCHAR(50) NOT NULL UNIQUE,
     description TEXT NOT NULL,
     base_price NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
     unit_id INTEGER NOT NULL REFERENCES units(id),
