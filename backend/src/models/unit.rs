@@ -30,7 +30,6 @@ pub struct Item {
     pub updated_by: i32, 
 }
 
-// DTO para la creación de una nueva unidad
 #[derive(Debug, Deserialize)]
 pub struct NewItem {
     pub name: String,

@@ -2,7 +2,7 @@ mod descomposition;
 mod element;
 mod measurement;
 mod price;
-mod project;
+pub mod project;
 mod role;
 pub mod unit;
 mod user;
