@@ -6,7 +6,7 @@ pub mod project;
 mod role;
 pub mod unit;
 mod user;
-mod version;
+pub mod version;
 mod budget;
 mod data;
 mod response;
