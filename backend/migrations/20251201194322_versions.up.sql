@@ -1,0 +1,13 @@
+-- 1. Versions Table
+CREATE TABLE versions (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
+    created_by INTEGER NOT NULL REFERENCES users(id),
+    updated_by INTEGER NOT NULL REFERENCES users(id)
+);
+
+CREATE TRIGGER set_updated_at_versions
+BEFORE UPDATE ON versions
+FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
