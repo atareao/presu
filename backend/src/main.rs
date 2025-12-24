@@ -42,11 +42,14 @@ use std::{
     env::var,
     path::Path,
 };
+use models::{
+    Unit,
+    Version,
+    Project,
+    Budget,
+};
 use http::{
     health,
-    unit,
-    project,
-    version,
     /*
     user_router,
     api_user_router,
@@ -113,9 +116,10 @@ async fn main() -> Result<(), Error> {
 
     let api_routes = Router::new()
         .nest("/health", health::router())
-        .nest("/units", unit::router())
-        .nest("/projects", project::router())
-        .nest("/versions", version::router())
+        .nest("/units", Unit::router())
+        .nest("/projects", Project::router())
+        .nest("/budgets", Budget::router())
+        .nest("/versions", Version::router())
         //.nest("/auth", user_router())
         //.nest("/users", api_user_router())
         .with_state(Arc::new(AppState {

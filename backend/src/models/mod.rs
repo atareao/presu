@@ -4,9 +4,9 @@ mod measurement;
 mod price;
 pub mod project;
 mod role;
-pub mod unit;
+mod unit;
 mod user;
-pub mod version;
+mod version;
 mod budget;
 mod data;
 mod response;
@@ -17,6 +17,11 @@ pub type UtcTimestamp = chrono::DateTime<chrono::Utc>;
 pub type Error = Box<dyn std::error::Error>;
 pub use filterable::Filterable;
 pub use paginable::Paginable;
+
+pub use unit::Unit;
+pub use version::Version;
+pub use project::Project;
+pub use budget::Budget;
 
 pub use data::Data;
 pub use response::{

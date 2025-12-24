@@ -12,13 +12,15 @@ use super::{
     Filterable,
     UtcTimestamp,
 };
+use macros::axum_crud;
 
 // =================================================================
 // 1. ESTRUCTURAS DE DATOS (STRUCTS)
 // =================================================================
 
+#[axum_crud(path = "/units", new = "NewUnit", params = "UnitParams")]
 #[derive(Debug, FromRow, Serialize, Deserialize)]
-pub struct Item {
+pub struct Unit {
     pub id: i32,
     pub name: String,
     pub description: Option<String>,
@@ -31,7 +33,7 @@ pub struct Item {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct NewItem {
+pub struct NewUnit {
     pub name: String,
     pub description: Option<String>,
     pub base_formula: String,
@@ -39,7 +41,7 @@ pub struct NewItem {
 }
 
 #[derive(Debug, serde::Deserialize, macros::Paginable)]
-pub struct Params {
+pub struct UnitParams {
     pub id: Option<i32>,
 
     pub name: Option<String>,
@@ -55,7 +57,7 @@ pub struct Params {
 // 2. MÉTODOS CRUD (ASOCIADOS DIRECTAMENTE AL STRUCT)
 // =================================================================
 
-impl Item {
+impl Unit {
     const TABLE: &str = "units";
     const INSERT_QUERY: &str = r#"
         (
@@ -93,7 +95,7 @@ impl Item {
             .await
     }
 
-    pub async fn count_paged(pool: &PgPool, params: &Params) -> Result<i64, Error> {
+    pub async fn count_paged(pool: &PgPool, params: &UnitParams) -> Result<i64, Error> {
         let sql = format!("SELECT COUNT(*) FROM {} WHERE 1=1", Self::TABLE);
         debug!("Count paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
@@ -106,7 +108,7 @@ impl Item {
             .await
     }
 
-    pub async fn read_paged(pool: &PgPool, params: &Params) -> Result<Vec<Self>, Error> {
+    pub async fn read_paged(pool: &PgPool, params: &UnitParams) -> Result<Vec<Self>, Error> {
         let sql = format!("SELECT * FROM {} WHERE 1=1", Self::TABLE);
         debug!("Read paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
@@ -130,7 +132,7 @@ impl Item {
     // C: CREATE (Crear)
     // =================================================================
     /// Inserta un nuevo registro en la base de datos y devuelve el objeto creado.
-    pub async fn create(pg_pool: &PgPool, item: NewItem) -> Result<Self, Error> {
+    pub async fn create(pg_pool: &PgPool, item: NewUnit) -> Result<Self, Error> {
         let sql = format!("{} RETURNING *", Self::INSERT_QUERY);
         debug!("Create: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
@@ -146,7 +148,7 @@ impl Item {
     // U: UPDATE (Actualizar)
     // =================================================================
     /// Actualiza un registro por ID y devuelve el objeto actualizado.
-    pub async fn update(pg_pool: &PgPool, item: Item) -> Result<Self, Error> {
+    pub async fn update(pg_pool: &PgPool, item: Unit) -> Result<Self, Error> {
         let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING ", Self::TABLE, Self::UPDATE_QUERY);
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)

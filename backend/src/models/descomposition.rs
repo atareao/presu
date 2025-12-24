@@ -1,11 +1,24 @@
+use serde::{Deserialize, Serialize};
 use sqlx::{
-    FromRow,
-    Type
+    self,
+    Type,
+    Postgres,
+    QueryBuilder,
+    Error, FromRow, Row,
+    postgres::{PgPool, PgRow},
 };
-use serde::{Serialize, Deserialize};
-use serde_json::Value;
+use tracing::debug;
+use super::{
+    Paginable,
+    Filterable,
+    UtcTimestamp,
+};
+use macros::axum_crud;
+use std::fmt;
 
-use super::UtcTimestamp;
+// =================================================================
+// 1. ESTRUCTURAS DE DATOS (STRUCTS)
+// =================================================================
 
 #[derive(Debug, Type, Serialize, Deserialize, Clone, Copy)]
 #[sqlx(type_name = "calculation_mode_enum", rename_all = "lowercase")]
