@@ -1,7 +1,7 @@
 -- Measurement Lines Table
 CREATE TABLE measurements (
     id SERIAL PRIMARY KEY,
-    element_id INTEGER PRIMARY KEY REFERENCES elements(id), 
+    element_id INTEGER NOT NULL REFERENCES elements(id), 
     price_id INTEGER NOT NULL REFERENCES prices(id), 
     params_json JSONB NOT NULL, 
     measurement_text TEXT,
