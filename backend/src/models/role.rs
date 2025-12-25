@@ -47,7 +47,7 @@ pub struct RoleParams {
 // =================================================================
 
 impl Role {
-    const TABLE: &str = "projects";
+    const TABLE: &str = "roles";
     const INSERT_QUERY: &str = r#"
         (
             name

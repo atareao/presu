@@ -1,8 +1,14 @@
 -- Table for Roles
 CREATE TABLE roles (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
+    name VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')
 );
+-- Trigger for 'roles'
+CREATE TRIGGER set_updated_at_roles
+BEFORE UPDATE ON roles
+FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
 INSERT INTO roles (name) VALUES 
 ('SYSTEM_ADMIN'),

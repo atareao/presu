@@ -63,7 +63,7 @@ pub struct MeasurementParams {
 // =================================================================
 
 impl Measurement {
-    const TABLE: &str = "budgets";
+    const TABLE: &str = "measurements";
     const INSERT_QUERY: &str = r#"
         (
             element_id,

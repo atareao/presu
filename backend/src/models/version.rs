@@ -48,7 +48,7 @@ pub struct VersionParams {
 // =================================================================
 
 impl Version {
-    const TABLE: &str = "units";
+    const TABLE: &str = "versions";
     const INSERT_QUERY: &str = r#"
         (
             name,

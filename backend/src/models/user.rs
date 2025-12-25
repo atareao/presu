@@ -60,7 +60,7 @@ pub struct UserParams {
 // =================================================================
 
 impl User {
-    const TABLE: &str = "projects";
+    const TABLE: &str = "users";
     const INSERT_QUERY: &str = r#"
         (
             username,
