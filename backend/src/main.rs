@@ -48,6 +48,7 @@ use models::{
     Project,
     Budget,
     Descomposition,
+    Element,
 };
 use http::{
     health,
@@ -117,6 +118,7 @@ async fn main() -> Result<(), Error> {
         .nest("/projects", Project::router())
         .nest("/budgets", Budget::router())
         .nest("/descompositions", Descomposition::router())
+        .nest("/element", Element::router())
         .nest("/versions", Version::router())
         //.nest("/auth", user_router())
         //.nest("/users", api_user_router())

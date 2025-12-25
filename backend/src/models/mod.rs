@@ -23,6 +23,7 @@ pub use version::Version;
 pub use project::Project;
 pub use budget::Budget;
 pub use descomposition::Descomposition;
+pub use element::Element;
 
 pub use data::Data;
 pub use response::{
