@@ -47,13 +47,10 @@ use models::{
     Version,
     Project,
     Budget,
+    Descomposition,
 };
 use http::{
     health,
-    /*
-    user_router,
-    api_user_router,
-    */
 };
 use dotenv::dotenv;
 use models::{
@@ -119,6 +116,7 @@ async fn main() -> Result<(), Error> {
         .nest("/units", Unit::router())
         .nest("/projects", Project::router())
         .nest("/budgets", Budget::router())
+        .nest("/descompositions", Descomposition::router())
         .nest("/versions", Version::router())
         //.nest("/auth", user_router())
         //.nest("/users", api_user_router())

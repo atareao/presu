@@ -204,7 +204,7 @@ impl Budget {
     // U: UPDATE (Actualizar)
     // =================================================================
     /// Actualiza un registro por ID y devuelve el objeto actualizado.
-    pub async fn update(pg_pool: &PgPool, item: Budget) -> Result<Self, Error> {
+    pub async fn update(pg_pool: &PgPool, item: Self) -> Result<Self, Error> {
         let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING ", Self::TABLE, Self::UPDATE_QUERY);
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
