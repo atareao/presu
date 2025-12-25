@@ -62,8 +62,6 @@ pub struct Descomposition {
     pub params_json: Option<Value>, 
     pub created_at: UtcTimestamp,
     pub updated_at: UtcTimestamp,
-    pub created_by: i32, 
-    pub updated_by: i32, 
 }
 
 

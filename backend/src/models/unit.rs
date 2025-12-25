@@ -28,8 +28,6 @@ pub struct Unit {
     pub expected_params_json: Value, 
     pub created_at: UtcTimestamp,
     pub updated_at: UtcTimestamp,
-    pub created_by: i32, 
-    pub updated_by: i32, 
 }
 
 #[derive(Debug, Deserialize)]

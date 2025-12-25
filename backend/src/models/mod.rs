@@ -18,12 +18,16 @@ pub type Error = Box<dyn std::error::Error>;
 pub use filterable::Filterable;
 pub use paginable::Paginable;
 
-pub use unit::Unit;
-pub use version::Version;
-pub use project::Project;
 pub use budget::Budget;
 pub use descomposition::Descomposition;
 pub use element::Element;
+pub use measurement::Measurement;
+pub use price::Price;
+pub use project::Project;
+pub use role::Role;
+pub use unit::Unit;
+pub use user::User;
+pub use version::Version;
 
 pub use data::Data;
 pub use response::{

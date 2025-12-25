@@ -1,83 +1,151 @@
+use serde::{Deserialize, Serialize};
 use sqlx::{
-    FromRow,
-    PgPool,
-    Result
+    Postgres,
+    QueryBuilder,
+    Error, FromRow, Row,
+    postgres::{PgPool, PgRow},
 };
-use serde::{Serialize, Deserialize};
+use tracing::debug;
+use super::{
+    Paginable,
+    Filterable,
+    UtcTimestamp,
+};
+use macros::axum_crud;
 
-/// Representa una fila en la tabla 'roles'
+// =================================================================
+// 1. ESTRUCTURAS DE DATOS (STRUCTS)
+// =================================================================
+
+#[axum_crud(path = "/roles", new = "NewRole", params = "RoleParams")]
 #[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct Role {
     pub id: i32,
-    pub name: String, // Contendrá valores como "SYSTEM_ADMIN", "PROJECT_MANAGER", etc.
+    pub name: String,
+    pub created_at: UtcTimestamp,
+    pub updated_at: UtcTimestamp,
 }
-pub async fn create_role(pool: &PgPool, name: String) -> Result<Role> {
-    sqlx::query_as!(
-        Role,
-        r#"
-        INSERT INTO roles (name)
+#[derive(Debug, Deserialize)]
+pub struct NewRole {
+    pub name: String, // "SYSTEM_ADMIN", "PROJECT_MANAGER"
+}
+
+#[derive(Debug, serde::Deserialize, macros::Paginable)]
+pub struct RoleParams {
+    pub id: Option<i32>,
+
+    pub name: Option<String>,
+
+    pub page: Option<u32>,
+    pub limit: Option<u32>,
+    pub sort_by: Option<String>,
+    pub asc: Option<bool>,
+}
+
+// =================================================================
+// 2. MÉTODOS CRUD (ASOCIADOS DIRECTAMENTE AL STRUCT)
+// =================================================================
+
+impl Role {
+    const TABLE: &str = "projects";
+    const INSERT_QUERY: &str = r#"
+        (
+            name
+        )
         VALUES ($1)
-        RETURNING *
-        "#,
-        name
-    )
-    .fetch_one(pool)
-    .await
-}
+    "#;
+    const UPDATE_QUERY: &str = r#"
+        name = $2
+    "#;
 
-pub async fn get_role_by_id(pool: &PgPool, id: i32) -> Result<Role> {
-    sqlx::query_as!(
-        Role,
-        r#"
-        SELECT id, name
-        FROM roles
-        WHERE id = $1
-        "#,
-        id
-    )
-    .fetch_one(pool)
-    .await
-}
+    // =================================================================
+    // R: READ
+    // =================================================================
+    pub async fn read_by_id(pg_pool: &PgPool, id: i32) -> Result<Option<Self>, Error> {
+        let sql = format!(r#"SELECT * FROM {} WHERE id = $1"#, Self::TABLE);
+        debug!("Read by: {}", &sql);
+        sqlx::query_as::<_, Self>(&sql)
+            .bind(id)
+            .fetch_optional(pg_pool)
+            .await
+    }
 
-pub async fn get_all_roles(pool: &PgPool) -> Result<Vec<Role>> {
-    sqlx::query_as!(
-        Role,
-        r#"
-        SELECT id, name
-        FROM roles
-        ORDER BY id
-        "#
-    )
-    .fetch_all(pool)
-    .await
-}
+    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error>{
+        let sql = format!("SELECT * FROM {}", Self::TABLE);
+        debug!("Read all: {}", &sql);
+        sqlx::query_as::<_, Self>(&sql)
+            .fetch_all(pg_pool)
+            .await
+    }
 
-pub async fn update_role(pool: &PgPool, id: i32, new_name: String) -> Result<Role> {
-    sqlx::query_as!(
-        Role,
-        r#"
-        UPDATE roles
-        SET name = $1
-        WHERE id = $2
-        RETURNING id, name
-        "#,
-        new_name,
-        id
-    )
-    .fetch_one(pool)
-    .await
-}
+    pub async fn count_paged(pool: &PgPool, params: &RoleParams) -> Result<i64, Error> {
+        let sql = format!("SELECT COUNT(*) FROM {} WHERE 1=1", Self::TABLE);
+        debug!("Count paged: {}", &sql);
+        let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
+        params.name.append_filter(&mut query_builder, "name");
+        query_builder
+            .build()
+            .map(|row: PgRow| row.get::<i64, _>(0))
+            .fetch_one(pool)
+            .await
+    }
 
-pub async fn delete_role(pool: &PgPool, id: i32) -> Result<Role> {
-    sqlx::query_as!(
-        Role,
-        r#"
-        DELETE FROM roles
-        WHERE id = $1
-        RETURNING *
-        "#,
-        id
-    )
-    .fetch_one(pool)
-    .await
+    pub async fn read_paged(pool: &PgPool, params: &RoleParams) -> Result<Vec<Self>, Error> {
+        let sql = format!("SELECT * FROM {} WHERE 1=1", Self::TABLE);
+        debug!("Read paged: {}", &sql);
+        let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
+        params.name.append_filter(&mut query_builder, "name");
+        if let Some(sort_by) = &params.sort_by {
+            query_builder.push(format!(" ORDER BY {} ", sort_by));
+            query_builder.push(if params.asc.unwrap_or(true) { "ASC" } else { "DESC" });
+        }
+        query_builder.push(" LIMIT ");
+        query_builder.push_bind(params.limit_or_default());
+        query_builder.push(" OFFSET ");
+        query_builder.push_bind(params.offset());
+        query_builder
+            .build_query_as::<Self>()
+            .fetch_all(pool)
+            .await
+    }
+
+    // =================================================================
+    // C: CREATE (Crear)
+    // =================================================================
+    /// Inserta un nuevo registro en la base de datos y devuelve el objeto creado.
+    pub async fn create(pg_pool: &PgPool, item: NewRole) -> Result<Self, Error> {
+        let sql = format!("{} RETURNING *", Self::INSERT_QUERY);
+        debug!("Create: {}", &sql);
+        sqlx::query_as::<_, Self>(&sql)
+        .bind(item.name)
+        .fetch_one(pg_pool)
+        .await
+    }
+
+    // =================================================================
+    // U: UPDATE (Actualizar)
+    // =================================================================
+    /// Actualiza un registro por ID y devuelve el objeto actualizado.
+    pub async fn update(pg_pool: &PgPool, item: Role) -> Result<Self, Error> {
+        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING ", Self::TABLE, Self::UPDATE_QUERY);
+        debug!("Update: {}", &sql);
+        sqlx::query_as::<_, Self>(&sql)
+        .bind(item.id)
+        .bind(item.name)
+        .fetch_one(pg_pool)
+        .await
+    }
+
+    // =================================================================
+    // D: DELETE (Borrar y devolver el valor)
+    // =================================================================
+    /// Elimina un registro por ID y devuelve el objeto que fue eliminado.
+    pub async fn delete(pg_pool: &PgPool, id: i32) -> Result<Self, Error> {
+        let sql = format!(" DELETE FROM {} WHERE id = $1 RETURNING *", Self::TABLE);
+        debug!("Delete: {}", &sql);
+        sqlx::query_as::<_, Self>(&sql)
+            .bind(id)
+            .fetch_one(pg_pool)
+            .await
+    }
 }

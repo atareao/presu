@@ -1,131 +1,186 @@
+use serde::{Deserialize, Serialize};
 use sqlx::{
-    FromRow,
-    PgPool,
-    Result
+    Postgres,
+    QueryBuilder,
+    Error, FromRow, Row,
+    postgres::{PgPool, PgRow},
 };
-use serde::{Serialize, Deserialize};
+use tracing::debug;
+use super::{
+    Paginable,
+    Filterable,
+    UtcTimestamp,
+};
+use macros::axum_crud;
 
-use super::UtcTimestamp;
+// =================================================================
+// 1. ESTRUCTURAS DE DATOS (STRUCTS)
+// =================================================================
 
-// DTO para la creación de un nuevo usuario
-// Nota: La contraseña ya debe venir hasheada desde el servicio de autenticación.
-#[derive(Debug, Deserialize)]
-pub struct UserCreateDTO {
+#[axum_crud(path = "/users", new = "NewUser", params = "UserParams")]
+#[derive(Debug, FromRow, Serialize, Deserialize)]
+pub struct User {
+    pub id: i32,
     pub username: String,
     pub email: String,
-    pub hashed_password: String, // Contraseña ya hasheada
+    pub hashed_password: String,
     pub role_id: i32,
     pub is_active: bool,
+    pub created_at: UtcTimestamp,
+    pub updated_at: UtcTimestamp,
 }
 
 // DTO para la actualización de datos del usuario (la contraseña se maneja aparte)
 #[derive(Debug, Deserialize)]
-pub struct UserUpdateDTO {
-    // Option<T> permite actualizaciones parciales (PATCH)
-    pub username: Option<String>,
-    pub email: Option<String>,
-    pub role_id: Option<i32>,
-    pub is_active: Option<bool>,
-}
-
-/// Representa una fila en la tabla 'users'
-#[derive(Debug, FromRow, Serialize, Deserialize)]
-pub struct UserRead {
-    pub id: i32,
+pub struct NewUser {
     pub username: String,
     pub email: String,
-    #[serde(skip_serializing)] // No enviar el hash de la contraseña al frontend
-    pub hashed_password: String, 
-    pub role_id: i32, 
+    pub hashed_password: String,
+    pub role_id: i32,
+    pub is_active: bool,
+}
+
+#[derive(Debug, serde::Deserialize, macros::Paginable)]
+pub struct UserParams {
+    pub id: Option<i32>,
+
+    pub username: Option<String>,
+    pub email: Option<String>,
+    pub role_id: Option<i32>, 
     pub is_active: Option<bool>,
-    pub created_at: UtcTimestamp,
-    pub updated_at: UtcTimestamp,
-    pub created_by: i32, 
-    pub updated_by: i32, 
-}
-/// Crea un nuevo usuario. El 'creator_id' es el ID del usuario autenticado que realiza la acción.
-pub async fn create_user(pool: &PgPool, data: UserCreateDTO, creator_id: i32) -> Result<UserRead> {
-    // Los campos created_by y updated_by deben ser el ID del creador al inicio.
-    sqlx::query_as!(
-        UserRead,
-        r#"
-        INSERT INTO users (username, email, hashed_password, role_id, is_active, created_by, updated_by)
-        VALUES ($1, $2, $3, $4, $5, $6, $6)
-        RETURNING *
-        "#,
-        data.username,
-        data.email,
-        data.hashed_password,
-        data.role_id,
-        data.is_active,
-        creator_id, // $6 para created_by y updated_by
-    )
-    .fetch_one(pool)
-    .await
-}
-/// Obtiene un usuario por ID.
-pub async fn get_user_by_id(pool: &PgPool, id: i32) -> Result<UserRead> {
-    sqlx::query_as!(
-        UserRead,
-        r#"
-        SELECT * FROM users WHERE id = $1
-        "#,
-        id
-    )
-    .fetch_one(pool)
-    .await
+
+    pub page: Option<u32>,
+    pub limit: Option<u32>,
+    pub sort_by: Option<String>,
+    pub asc: Option<bool>,
 }
 
-/// Obtiene todos los usuarios.
-pub async fn get_all_users(pool: &PgPool) -> Result<Vec<UserRead>> {
-    sqlx::query_as!(
-        UserRead,
-        r#"
-        SELECT * FROM users ORDER BY id
-        "#,
-    )
-    .fetch_all(pool)
-    .await
-}
+// =================================================================
+// 2. MÉTODOS CRUD (ASOCIADOS DIRECTAMENTE AL STRUCT)
+// =================================================================
 
-/// Actualiza los datos de un usuario (no la contraseña).
-pub async fn update_user(pool: &PgPool, user_id: i32, data: UserUpdateDTO, updater_id: i32) -> Result<UserRead> {
-    // Utilizamos el trigger set_updated_at_users para actualizar updated_at
-    sqlx::query_as!(
-        UserRead,
-        r#"
-        UPDATE users
-        SET 
-            username = COALESCE($1, username),
-            email = COALESCE($2, email),
-            role_id = COALESCE($3, role_id),
-            is_active = COALESCE($4, is_active),
-            updated_by = $5
-        WHERE id = $6
-        RETURNING *
-        "#,
-        data.username,
-        data.email,
-        data.role_id,
-        data.is_active,
-        updater_id, // $5
-        user_id, // $6
-    )
-    .fetch_one(pool)
-    .await
-}
+impl User {
+    const TABLE: &str = "projects";
+    const INSERT_QUERY: &str = r#"
+        (
+            username,
+            email,
+            hashed_password,
+            role_id,
+            is_active
+        )
+        VALUES ($1)
+    "#;
+    const UPDATE_QUERY: &str = r#"
+        username = $2,
+        email = $3,
+        hashed_password = $4,
+        role_id = $5,
+        is_active = $6
+    "#;
 
-/// Elimina un usuario por su ID. Retorna el número de filas afectadas.
-pub async fn delete_user(pool: &PgPool, id: i32) -> Result<UserRead> {
-    sqlx::query_as!(
-        UserRead,
-        r#"
-        DELETE FROM users
-        WHERE id = $1
-        RETURNING *
-        "#,
-        id
-    )
-    .fetch_one(pool)
-    .await
+    // =================================================================
+    // R: READ
+    // =================================================================
+    pub async fn read_by_id(pg_pool: &PgPool, id: i32) -> Result<Option<Self>, Error> {
+        let sql = format!(r#"SELECT * FROM {} WHERE id = $1"#, Self::TABLE);
+        debug!("Read by: {}", &sql);
+        sqlx::query_as::<_, Self>(&sql)
+            .bind(id)
+            .fetch_optional(pg_pool)
+            .await
+    }
+
+    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error>{
+        let sql = format!("SELECT * FROM {}", Self::TABLE);
+        debug!("Read all: {}", &sql);
+        sqlx::query_as::<_, Self>(&sql)
+            .fetch_all(pg_pool)
+            .await
+    }
+
+    pub async fn count_paged(pool: &PgPool, params: &UserParams) -> Result<i64, Error> {
+        let sql = format!("SELECT COUNT(*) FROM {} WHERE 1=1", Self::TABLE);
+        debug!("Count paged: {}", &sql);
+        let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
+        params.username.append_filter(&mut query_builder, "username");
+        params.email.append_filter(&mut query_builder, "email");
+        params.role_id.append_filter(&mut query_builder, "role_id");
+        params.is_active.append_filter(&mut query_builder, "is_active");
+        query_builder
+            .build()
+            .map(|row: PgRow| row.get::<i64, _>(0))
+            .fetch_one(pool)
+            .await
+    }
+
+    pub async fn read_paged(pool: &PgPool, params: &UserParams) -> Result<Vec<Self>, Error> {
+        let sql = format!("SELECT * FROM {} WHERE 1=1", Self::TABLE);
+        debug!("Read paged: {}", &sql);
+        let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
+        params.username.append_filter(&mut query_builder, "username");
+        params.email.append_filter(&mut query_builder, "email");
+        params.role_id.append_filter(&mut query_builder, "role_id");
+        params.is_active.append_filter(&mut query_builder, "is_active");
+        if let Some(sort_by) = &params.sort_by {
+            query_builder.push(format!(" ORDER BY {} ", sort_by));
+            query_builder.push(if params.asc.unwrap_or(true) { "ASC" } else { "DESC" });
+        }
+        query_builder.push(" LIMIT ");
+        query_builder.push_bind(params.limit_or_default());
+        query_builder.push(" OFFSET ");
+        query_builder.push_bind(params.offset());
+        query_builder
+            .build_query_as::<Self>()
+            .fetch_all(pool)
+            .await
+    }
+
+    // =================================================================
+    // C: CREATE (Crear)
+    // =================================================================
+    /// Inserta un nuevo registro en la base de datos y devuelve el objeto creado.
+    pub async fn create(pg_pool: &PgPool, item: NewUser) -> Result<Self, Error> {
+        let sql = format!("{} RETURNING *", Self::INSERT_QUERY);
+        debug!("Create: {}", &sql);
+        sqlx::query_as::<_, Self>(&sql)
+        .bind(item.username)
+        .bind(item.email)
+        .bind(item.hashed_password)
+        .bind(item.role_id)
+        .bind(item.is_active)
+        .fetch_one(pg_pool)
+        .await
+    }
+
+    // =================================================================
+    // U: UPDATE (Actualizar)
+    // =================================================================
+    /// Actualiza un registro por ID y devuelve el objeto actualizado.
+    pub async fn update(pg_pool: &PgPool, item: Self) -> Result<Self, Error> {
+        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING ", Self::TABLE, Self::UPDATE_QUERY);
+        debug!("Update: {}", &sql);
+        sqlx::query_as::<_, Self>(&sql)
+        .bind(item.id)
+        .bind(item.username)
+        .bind(item.email)
+        .bind(item.hashed_password)
+        .bind(item.role_id)
+        .bind(item.is_active)
+        .fetch_one(pg_pool)
+        .await
+    }
+
+    // =================================================================
+    // D: DELETE (Borrar y devolver el valor)
+    // =================================================================
+    /// Elimina un registro por ID y devuelve el objeto que fue eliminado.
+    pub async fn delete(pg_pool: &PgPool, id: i32) -> Result<Self, Error> {
+        let sql = format!(" DELETE FROM {} WHERE id = $1 RETURNING *", Self::TABLE);
+        debug!("Delete: {}", &sql);
+        sqlx::query_as::<_, Self>(&sql)
+            .bind(id)
+            .fetch_one(pg_pool)
+            .await
+    }
 }

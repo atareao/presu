@@ -25,8 +25,6 @@ pub struct Project {
     pub title: String,
     pub created_at: UtcTimestamp,
     pub updated_at: UtcTimestamp,
-    pub created_by: i32, 
-    pub updated_by: i32, 
 }
 
 #[derive(Debug, Deserialize)]
@@ -90,7 +88,7 @@ impl Project {
         let sql = format!("SELECT COUNT(*) FROM {} WHERE 1=1", Self::TABLE);
         debug!("Count paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
-        params.code.append_filter(&mut query_builder, "name");
+        params.code.append_filter(&mut query_builder, "code");
         params.title.append_filter(&mut query_builder, "description");
         query_builder
             .build()
@@ -103,7 +101,7 @@ impl Project {
         let sql = format!("SELECT * FROM {} WHERE 1=1", Self::TABLE);
         debug!("Read paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
-        params.code.append_filter(&mut query_builder, "name");
+        params.code.append_filter(&mut query_builder, "code");
         params.title.append_filter(&mut query_builder, "description");
         if let Some(sort_by) = &params.sort_by {
             query_builder.push(format!(" ORDER BY {} ", sort_by));

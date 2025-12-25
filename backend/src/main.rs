@@ -43,12 +43,16 @@ use std::{
     path::Path,
 };
 use models::{
-    Unit,
-    Version,
-    Project,
     Budget,
     Descomposition,
     Element,
+    Measurement,
+    Price,
+    Project,
+    Role,
+    Unit,
+    User,
+    Version,
 };
 use http::{
     health,
@@ -113,13 +117,17 @@ async fn main() -> Result<(), Error> {
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
     let api_routes = Router::new()
-        .nest("/health", health::router())
-        .nest("/units", Unit::router())
-        .nest("/projects", Project::router())
         .nest("/budgets", Budget::router())
         .nest("/descompositions", Descomposition::router())
-        .nest("/element", Element::router())
+        .nest("/elements", Element::router())
+        .nest("/measurements", Measurement::router())
+        .nest("/prices", Price::router())
+        .nest("/projects", Project::router())
+        .nest("/roles", Role::router())
+        .nest("/units", Unit::router())
+        .nest("/users", User::router())
         .nest("/versions", Version::router())
+        .nest("/health", health::router())
         //.nest("/auth", user_router())
         //.nest("/users", api_user_router())
         .with_state(Arc::new(AppState {

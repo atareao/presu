@@ -13,7 +13,6 @@ erDiagram
         varchar email
         varchar hashed_password
         boolean is_active
-        %% Los campos de auditoría (created_by/updated_by) también son FKs a esta misma tabla.
     }
 
     versions {
@@ -94,5 +93,3 @@ erDiagram
     prices ||--o{ decompositions : contains_component "component_price_id"
     prices ||--o{ measurements : provides_cost "price_id"
 
-    %% AUDITORÍA (Simplificada)
-    users ||--o{ users : created_by

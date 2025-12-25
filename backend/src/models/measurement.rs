@@ -32,8 +32,6 @@ pub struct Measurement {
     pub measured_quantity: f64, // NUMERIC(10, 4)
     pub created_at: UtcTimestamp,
     pub updated_at: UtcTimestamp,
-    pub created_by: i32, 
-    pub updated_by: i32, 
 }
 
 // DTO para la creación de una nueva versión de presupuesto

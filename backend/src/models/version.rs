@@ -24,8 +24,6 @@ pub struct Version {
     pub name: String, // Ejemplo: "2025.Q1"
     pub created_at: UtcTimestamp,
     pub updated_at: UtcTimestamp,
-    pub created_by: i32, 
-    pub updated_by: i32, 
 }
 
 #[derive(Debug, Deserialize)]
