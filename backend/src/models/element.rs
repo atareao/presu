@@ -101,7 +101,7 @@ pub struct ElementParams {
 // =================================================================
 
 impl Element {
-    const TABLE: &str = "budgets";
+    const TABLE: &str = "elements";
     const INSERT_QUERY: &str = r#"
         (
             project_id,

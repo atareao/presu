@@ -10,10 +10,7 @@ CREATE TABLE prices (
     
     -- Audit Fields
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
-    created_by INTEGER NOT NULL REFERENCES users(id),
-    updated_by INTEGER NOT NULL REFERENCES users(id),
-    
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')
     UNIQUE (version_id, code) 
 );
 

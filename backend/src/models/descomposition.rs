@@ -33,8 +33,8 @@ pub enum CalculationMode {
 impl fmt::Display for CalculationMode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
-            Self::Fixed => "Fixed",
-            Self::Formula => "Formula",
+            Self::Fixed => "fixed",
+            Self::Formula => "formula",
         };
         write!(f, "{}", s)
     }

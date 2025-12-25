@@ -38,11 +38,11 @@ pub enum BudgetStatus {
 impl fmt::Display for BudgetStatus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
-            Self::Draft => "Draft",
-            Self::Submitted => "Submitted",
-            Self::Approved => "Approved",
-            Self::Rejected => "Rejected",
-            Self::Archived => "Archived",
+            Self::Draft => "draft",
+            Self::Submitted => "submitted",
+            Self::Approved => "approved",
+            Self::Rejected => "rejected",
+            Self::Archived => "archived",
         };
         write!(f, "{}", s)
     }
@@ -70,8 +70,6 @@ pub struct Budget {
     // Campos de Auditoría
     pub created_at: UtcTimestamp,
     pub updated_at: UtcTimestamp,
-    pub created_by: i32, 
-    pub updated_by: i32, 
 }
 
 // DTO para la creación de una nueva versión de presupuesto

@@ -8,8 +8,6 @@ CREATE TABLE decompositions (
     params_json JSONB, 
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
-    created_by INTEGER NOT NULL REFERENCES users(id),
-    updated_by INTEGER NOT NULL REFERENCES users(id),
     UNIQUE (parent_price_id, component_price_id),
     CHECK (
         (calculation_mode = 'fixed' AND fixed_quantity IS NOT NULL AND params_json IS NULL) OR

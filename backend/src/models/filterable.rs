@@ -1,4 +1,8 @@
-use sqlx::{Postgres, QueryBuilder};
+use sqlx::{
+    Postgres,
+    QueryBuilder,
+    types::BigDecimal,
+};
 
 pub trait Filterable {
     fn append_filter(&self, builder: &mut QueryBuilder<Postgres>, column: &str);
@@ -24,3 +28,32 @@ impl Filterable for Option<i32> {
     }
 }
 
+//Implementación para búsqueda exacta en Booleanos
+impl Filterable for Option<bool> {
+    fn append_filter(&self, builder: &mut QueryBuilder<Postgres>, column: &str) {
+        if let Some(val) = self {
+            builder.push(format!(" AND {} = ", column));
+            builder.push_bind(*val);
+        }
+    }
+}
+
+//Implementación para búsqueda exacta en f64
+impl Filterable for Option<f64> {
+    fn append_filter(&self, builder: &mut QueryBuilder<Postgres>, column: &str) {
+        if let Some(val) = self {
+            builder.push(format!(" AND {} = ", column));
+            builder.push_bind(*val);
+        }
+    }
+}
+
+//Implementación para búsqueda exacta en BigDecimal
+impl Filterable for Option<BigDecimal> {
+    fn append_filter(&self, builder: &mut QueryBuilder<Postgres>, column: &str) {
+        if let Some(val) = self {
+            builder.push(format!(" AND {} = ", column));
+            builder.push_bind(val.clone());
+        }
+    }
+}
