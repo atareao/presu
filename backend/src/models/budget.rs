@@ -20,7 +20,7 @@ use std::fmt;
 // 1. ESTRUCTURAS DE DATOS (STRUCTS)
 // =================================================================
 
-#[derive(Debug, Type, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Type, Serialize, Deserialize, Clone, Copy, PartialEq)]
 #[sqlx(type_name = "budget_status_enum", rename_all = "lowercase")] // Nombre del ENUM en PostgreSQL
 pub enum BudgetStatus {
     #[serde(rename = "draft")]
@@ -186,7 +186,7 @@ impl Budget {
     // =================================================================
     /// Inserta un nuevo registro en la base de datos y devuelve el objeto creado.
     pub async fn create(pg_pool: &PgPool, item: NewBudget) -> Result<Self, Error> {
-        let sql = format!("{} RETURNING *", Self::INSERT_QUERY);
+        let sql = format!("INSERT INTO {} {} RETURNING *", Self::TABLE, Self::INSERT_QUERY);
         debug!("Create: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
         .bind(item.project_id)
@@ -203,7 +203,7 @@ impl Budget {
     // =================================================================
     /// Actualiza un registro por ID y devuelve el objeto actualizado.
     pub async fn update(pg_pool: &PgPool, item: Self) -> Result<Self, Error> {
-        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING ", Self::TABLE, Self::UPDATE_QUERY);
+        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING *", Self::TABLE, Self::UPDATE_QUERY);
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
         .bind(item.id)

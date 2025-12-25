@@ -3,6 +3,14 @@ name = "backend"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "backend"
+path = "src/lib.rs"
+
+[[bin]]
+name = "backend"
+path = "src/main.rs"
+
 [dependencies]
 axum = { version = "0.8.7", features = ["macros", "json", "original-uri"] }
 axum-extra = { version = "0.10.3", features = ["cookie"] }
@@ -33,3 +41,29 @@ macros = { path = "./macros"}
 
 [dev-dependencies]
 dotenv = "0.15.0"
+uuid = { version = "1.8.0", features = ["v4"] }
+rand = "0.8.5"
+
+[[test]]
+name = "budget_tests"
+path = "tests/budget_tests.rs"
+
+[[test]]
+name = "role_tests"
+path = "tests/role_tests.rs"
+
+[[test]]
+name = "project_tests"
+path = "tests/project_tests.rs"
+
+[[test]]
+name = "unit_tests"
+path = "tests/unit_tests.rs"
+
+[[test]]
+name = "user_tests"
+path = "tests/user_tests.rs"
+
+[[test]]
+name = "version_tests"
+path = "tests/version_tests.rs"

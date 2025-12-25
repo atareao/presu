@@ -114,7 +114,7 @@ impl Role {
     // =================================================================
     /// Inserta un nuevo registro en la base de datos y devuelve el objeto creado.
     pub async fn create(pg_pool: &PgPool, item: NewRole) -> Result<Self, Error> {
-        let sql = format!("{} RETURNING *", Self::INSERT_QUERY);
+        let sql = format!("INSERT INTO {} {} RETURNING *", Self::TABLE, Self::INSERT_QUERY);
         debug!("Create: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
         .bind(item.name)
@@ -127,7 +127,7 @@ impl Role {
     // =================================================================
     /// Actualiza un registro por ID y devuelve el objeto actualizado.
     pub async fn update(pg_pool: &PgPool, item: Role) -> Result<Self, Error> {
-        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING ", Self::TABLE, Self::UPDATE_QUERY);
+        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING *", Self::TABLE, Self::UPDATE_QUERY);
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
         .bind(item.id)
