@@ -238,3 +238,24 @@ impl Element {
             .await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sqlx::{Postgres, QueryBuilder, Execute};
+
+    #[test]
+    fn test_element_type_display() {
+        assert_eq!(format!("{}", ElementType::Chapter), "Chapter");
+        assert_eq!(format!("{}", ElementType::Line), "Line");
+    }
+
+    #[test]
+    fn test_element_type_filterable() {
+        let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM elements WHERE 1=1");
+        let element_type_filter = Some(ElementType::Chapter);
+        element_type_filter.append_filter(&mut builder, "element_type");
+        let query = builder.build();
+        assert_eq!(query.sql(), "SELECT * FROM elements WHERE 1=1 AND element_type LIKE $1");
+    }
+}

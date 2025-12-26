@@ -228,3 +228,24 @@ impl Price {
             .await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sqlx::{Postgres, QueryBuilder, Execute};
+
+    #[test]
+    fn test_price_type_display() {
+        assert_eq!(format!("{}", PriceType::Base), "base");
+        assert_eq!(format!("{}", PriceType::Decomposed), "decomposed");
+    }
+
+    #[test]
+    fn test_price_type_filterable() {
+        let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM prices WHERE 1=1");
+        let price_type_filter = Some(PriceType::Base);
+        price_type_filter.append_filter(&mut builder, "price_type");
+        let query = builder.build();
+        assert_eq!(query.sql(), "SELECT * FROM prices WHERE 1=1 AND price_type LIKE $1");
+    }
+}

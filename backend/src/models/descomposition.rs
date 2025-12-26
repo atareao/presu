@@ -219,3 +219,23 @@ impl Descomposition {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sqlx::{Postgres, QueryBuilder, Execute};
+
+    #[test]
+    fn test_calculation_mode_display() {
+        assert_eq!(format!("{}", CalculationMode::Fixed), "fixed");
+        assert_eq!(format!("{}", CalculationMode::Formula), "formula");
+    }
+
+    #[test]
+    fn test_calculation_mode_filterable() {
+        let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM descompositions WHERE 1=1");
+        let calculation_mode_filter = Some(CalculationMode::Fixed);
+        calculation_mode_filter.append_filter(&mut builder, "calculation_mode");
+        let query = builder.build();
+        assert_eq!(query.sql(), "SELECT * FROM descompositions WHERE 1=1 AND calculation_mode LIKE $1");
+    }
+}
