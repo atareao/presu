@@ -10,14 +10,13 @@ use uuid::Uuid;
 use serde_json::json;
 use sqlx::types::BigDecimal;
 use rand::Rng;
-
+use num_traits::cast::FromPrimitive;
 
 #[path = "common.rs"]
 mod common;
 
 async fn setup() -> (PgPool, Price, Price) {
     let _ = &common::TRACING;
-
     let pool = common::setup_pool().await;
 
     // Create a version

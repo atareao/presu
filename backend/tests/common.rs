@@ -1,6 +1,5 @@
 use sqlx::{
     postgres::PgPoolOptions,
-    migrate::Migrator,
     PgPool,
 };
 use dotenv::dotenv;

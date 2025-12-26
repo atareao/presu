@@ -44,8 +44,9 @@ dotenv = "0.15.0"
 uuid = { version = "1.8.0", features = ["v4"] }
 rand = "0.8.5"
 num-traits = "0.2"
-num-traits = "0.2"
 once_cell = "1.19.0"
+
+
 
 [[test]]
 name = "budget_tests"
@@ -74,3 +75,7 @@ path = "tests/version_tests.rs"
 [[test]]
 name = "descomposition_tests"
 path = "tests/descomposition_tests.rs"
+
+[[test]]
+name = "element_tests"
+path = "tests/element_tests.rs"

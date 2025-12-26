@@ -10,7 +10,6 @@ mod common;
 
 async fn setup() -> (PgPool, Role) {
     let _ = &common::TRACING;
-
     let pool = common::setup_pool().await;
     let new_role = NewRole {
         name: format!("R-TEST-{}", Uuid::new_v4()),

@@ -11,7 +11,6 @@ mod common;
 
 async fn setup() -> (PgPool, Project) {
     let _ = &common::TRACING;
-
     let pool = common::setup_pool().await;
 
     let new_project = NewProject {

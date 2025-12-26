@@ -20,7 +20,7 @@ use std::fmt;
 // 1. ESTRUCTURAS DE DATOS (STRUCTS)
 // =================================================================
 
-#[derive(Debug, Type, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Type, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 #[sqlx(type_name = "element_enum", rename_all = "lowercase")]
 pub enum ElementType {
     #[serde(rename = "chapter")]
@@ -116,7 +116,7 @@ impl Element {
         parent_id = $3,
         version_id = $4,
         element_type = $5,
-        budget_code = $5,
+        budget_code = $6,
         description = $7
     "#;
 
@@ -184,7 +184,7 @@ impl Element {
     // =================================================================
     /// Inserta un nuevo registro en la base de datos y devuelve el objeto creado.
     pub async fn create(pg_pool: &PgPool, item: NewElement) -> Result<Self, Error> {
-        let sql = format!("{} RETURNING *", Self::INSERT_QUERY);
+        let sql = format!("INSERT INTO {} {} RETURNING *", Self::TABLE, Self::INSERT_QUERY);
         debug!("Create: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
         .bind(item.project_id)
@@ -202,7 +202,7 @@ impl Element {
     // =================================================================
     /// Actualiza un registro por ID y devuelve el objeto actualizado.
     pub async fn update(pg_pool: &PgPool, item: Self) -> Result<Self, Error> {
-        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING ", Self::TABLE, Self::UPDATE_QUERY);
+        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING *", Self::TABLE, Self::UPDATE_QUERY);
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
         .bind(item.id)

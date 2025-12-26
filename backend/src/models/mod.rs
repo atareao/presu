@@ -1,5 +1,6 @@
 pub mod descomposition;
-mod element;
+pub mod element;
+pub use element::{Element, NewElement, ElementParams, ElementType};
 mod measurement;
 pub mod price;
 pub mod project;
@@ -20,7 +21,7 @@ pub use paginable::Paginable;
 
 pub use budget::Budget;
 pub use descomposition::{Descomposition, NewDescomposition, DescompositionParams};
-pub use element::Element;
+
 pub use measurement::Measurement;
 pub use price::{Price, NewPrice, PriceParams};
 pub use project::{Project, NewProject, ProjectParams};
