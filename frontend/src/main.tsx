@@ -1,10 +1,18 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import {  GlobalWorkerOptions } from "pdfjs-dist";
+import { pdfjs } from 'react-pdf';
+import App from './App.tsx';
+
+const workerUrl = `/assets/workers/pdf.worker.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  workerUrl,
+  import.meta.url,
+).toString();
+GlobalWorkerOptions.workerSrc = `/assets/workers/pdf.worker.mjs`;
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+    <StrictMode>
+        <App />
+    </StrictMode>,
 )
