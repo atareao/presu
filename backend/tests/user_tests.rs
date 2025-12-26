@@ -34,7 +34,7 @@ async fn test_create_user() {
     assert_eq!(user.username, username);
     assert_eq!(user.email, email);
     assert_eq!(user.role_id, role.id);
-    assert_eq!(user.is_active, true);
+    assert!(user.is_active);
 }
 
 #[tokio::test]
@@ -55,7 +55,7 @@ async fn test_read_user() {
     assert_eq!(read_user.username, username);
     assert_eq!(read_user.email, email);
     assert_eq!(read_user.role_id, role.id);
-    assert_eq!(read_user.is_active, true);
+    assert!(read_user.is_active);
 }
 
 #[tokio::test]

@@ -7,8 +7,7 @@ mod common;
 
 async fn setup() -> PgPool {
     let _ = &common::TRACING;
-    let pool = common::setup_pool().await;
-    pool
+    common::setup_pool().await
 }
 
 #[tokio::test]

@@ -30,7 +30,7 @@ async fn setup() -> (PgPool, Price, Price) {
         code: format!("P-TEST-{}", Uuid::new_v4()),
         title: Some("Test Project".to_string()),
     };
-    let project = Project::create(&pool, new_project).await.unwrap();
+    let _project = Project::create(&pool, new_project).await.unwrap();
 
     // Create a unit
     let name = format!("U-{}", Uuid::new_v4().to_string().chars().take(8).collect::<String>());
