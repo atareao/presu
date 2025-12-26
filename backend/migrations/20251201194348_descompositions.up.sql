@@ -1,5 +1,5 @@
 -- Decompositions Table
-CREATE TABLE decompositions (
+CREATE TABLE descompositions (
     id SERIAL PRIMARY KEY,
     parent_price_id INTEGER NOT NULL REFERENCES prices(id), 
     component_price_id INTEGER NOT NULL REFERENCES prices(id), 
@@ -15,6 +15,6 @@ CREATE TABLE decompositions (
     )
 );
 
-CREATE TRIGGER set_updated_at_decompositions
-BEFORE UPDATE ON decompositions
+CREATE TRIGGER set_updated_at_descompositions
+BEFORE UPDATE ON descompositions
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
