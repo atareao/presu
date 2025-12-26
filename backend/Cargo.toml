@@ -79,3 +79,11 @@ path = "tests/descomposition_tests.rs"
 [[test]]
 name = "element_tests"
 path = "tests/element_tests.rs"
+
+[[test]]
+name = "measurement_tests"
+path = "tests/measurement_tests.rs"
+
+[[test]]
+name = "price_tests"
+path = "tests/price_tests.rs"

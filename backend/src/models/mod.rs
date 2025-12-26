@@ -1,7 +1,7 @@
 pub mod descomposition;
 pub mod element;
 pub use element::{Element, NewElement, ElementParams, ElementType};
-mod measurement;
+pub mod measurement;
 pub mod price;
 pub mod project;
 pub mod role;

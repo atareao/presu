@@ -5,6 +5,7 @@ use sqlx::{
     QueryBuilder,
     Error, FromRow, Row,
     postgres::{PgPool, PgRow},
+    types::BigDecimal,
 };
 use tracing::debug;
 use super::{
@@ -29,7 +30,7 @@ pub struct Measurement {
     // Los parámetros variables de la medición (ej: {"largo": 10.0})
     pub params_json: Value, 
     pub measurement_text: Option<String>,
-    pub measured_quantity: f64, // NUMERIC(10, 4)
+    pub measured_quantity: BigDecimal, // NUMERIC(10, 4)
     pub created_at: UtcTimestamp,
     pub updated_at: UtcTimestamp,
 }
@@ -42,7 +43,7 @@ pub struct NewMeasurement {
     // Los parámetros variables de la medición (ej: {"largo": 10.0})
     pub params_json: Value, 
     pub measurement_text: Option<String>,
-    pub measured_quantity: f64, // NUMERIC(10, 4)
+    pub measured_quantity: BigDecimal, // NUMERIC(10, 4)
 }
 
 #[derive(Debug, serde::Deserialize, macros::Paginable)]
@@ -50,7 +51,7 @@ pub struct MeasurementParams {
     pub id: Option<i32>,
 
     pub measurement_text: Option<String>,
-    pub measured_quantity: Option<f64>,
+    pub measured_quantity: Option<BigDecimal>,
 
     pub page: Option<u32>,
     pub limit: Option<u32>,
@@ -65,7 +66,7 @@ pub struct MeasurementParams {
 impl Measurement {
     const TABLE: &str = "measurements";
     const INSERT_QUERY: &str = r#"
-        (
+        INSERT INTO measurements (
             element_id,
             price_id,
             params_json,
@@ -157,7 +158,7 @@ impl Measurement {
     // =================================================================
     /// Actualiza un registro por ID y devuelve el objeto actualizado.
     pub async fn update(pg_pool: &PgPool, item: Self) -> Result<Self, Error> {
-        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING ", Self::TABLE, Self::UPDATE_QUERY);
+        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING *", Self::TABLE, Self::UPDATE_QUERY);
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
         .bind(item.id)
