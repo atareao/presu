@@ -229,3 +229,17 @@ impl Budget {
             .await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_budget_status_display() {
+        assert_eq!(format!("{}", BudgetStatus::Draft), "draft");
+        assert_eq!(format!("{}", BudgetStatus::Submitted), "submitted");
+        assert_eq!(format!("{}", BudgetStatus::Approved), "approved");
+        assert_eq!(format!("{}", BudgetStatus::Rejected), "rejected");
+        assert_eq!(format!("{}", BudgetStatus::Archived), "archived");
+    }
+}

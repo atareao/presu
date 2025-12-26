@@ -203,3 +203,51 @@ impl IntoResponse for EmptyResponse {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct TestParams {
+        page: Option<u32>,
+        limit: Option<u32>,
+    }
+
+    impl Paginable for TestParams {
+        fn page(&self) -> Option<u32> {
+            self.page
+        }
+
+        fn limit(&self) -> Option<u32> {
+            self.limit
+        }
+    }
+
+    #[test]
+    fn test_pagination_new() {
+        let params = TestParams { page: Some(2), limit: Some(10) };
+        let pagination = Pagination::new(&params, 100, "/test");
+        assert_eq!(pagination.page, 2);
+        assert_eq!(pagination.limit, 10);
+        assert_eq!(pagination.pages, 10);
+        assert_eq!(pagination.records, 100);
+        assert_eq!(pagination.prev, Some("/test?page=1&limit=10".to_string()));
+        assert_eq!(pagination.next, Some("/test?page=3&limit=10".to_string()));
+    }
+
+    #[test]
+    fn test_pagination_first_page() {
+        let params = TestParams { page: Some(1), limit: Some(10) };
+        let pagination = Pagination::new(&params, 100, "/test");
+        assert_eq!(pagination.prev, None);
+        assert_eq!(pagination.next, Some("/test?page=2&limit=10".to_string()));
+    }
+
+    #[test]
+    fn test_pagination_last_page() {
+        let params = TestParams { page: Some(10), limit: Some(10) };
+        let pagination = Pagination::new(&params, 100, "/test");
+        assert_eq!(pagination.prev, Some("/test?page=9&limit=10".to_string()));
+        assert_eq!(pagination.next, None);
+    }
+}
+

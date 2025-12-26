@@ -19,3 +19,38 @@ pub trait Paginable {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct TestParams {
+        page: Option<u32>,
+        limit: Option<u32>,
+    }
+
+    impl Paginable for TestParams {
+        fn page(&self) -> Option<u32> {
+            self.page
+        }
+
+        fn limit(&self) -> Option<u32> {
+            self.limit
+        }
+    }
+
+    #[test]
+    fn test_paginable_defaults() {
+        let params = TestParams { page: None, limit: None };
+        assert_eq!(params.page_or_default(), DEFAULT_PAGE as i64);
+        assert_eq!(params.limit_or_default(), DEFAULT_LIMIT as i64);
+        assert_eq!(params.offset(), 0);
+    }
+
+    #[test]
+    fn test_paginable_with_values() {
+        let params = TestParams { page: Some(2), limit: Some(10) };
+        assert_eq!(params.page_or_default(), 2);
+        assert_eq!(params.limit_or_default(), 10);
+        assert_eq!(params.offset(), 10);
+    }
+}
