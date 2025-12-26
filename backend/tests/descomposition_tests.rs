@@ -76,14 +76,14 @@ async fn test_create_descomposition() {
         parent_price_id: parent_price.id,
         component_price_id: component_price.id,
         calculation_mode: CalculationMode::Fixed,
-        fixed_quantity: Some(2.0),
+        fixed_quantity: BigDecimal::from_f64(2.0),
         params_json: None,
     };
     let descomposition = Descomposition::create(&pool, new_descomposition).await.unwrap();
     assert_eq!(descomposition.parent_price_id, parent_price.id);
     assert_eq!(descomposition.component_price_id, component_price.id);
     assert_eq!(descomposition.calculation_mode, CalculationMode::Fixed);
-    assert_eq!(descomposition.fixed_quantity, Some(2.0));
+    assert_eq!(descomposition.fixed_quantity, BigDecimal::from_f64(2.0));
     assert_eq!(descomposition.params_json, None);
 }
 
@@ -94,7 +94,7 @@ async fn test_read_descomposition() {
         parent_price_id: parent_price.id,
         component_price_id: component_price.id,
         calculation_mode: CalculationMode::Fixed,
-        fixed_quantity: Some(2.0),
+        fixed_quantity: BigDecimal::from_f64(2.0),
         params_json: None,
     };
     let descomposition = Descomposition::create(&pool, new_descomposition).await.unwrap();
@@ -103,7 +103,7 @@ async fn test_read_descomposition() {
     assert_eq!(read_descomposition.parent_price_id, parent_price.id);
     assert_eq!(read_descomposition.component_price_id, component_price.id);
     assert_eq!(read_descomposition.calculation_mode, CalculationMode::Fixed);
-    assert_eq!(read_descomposition.fixed_quantity, Some(2.0));
+    assert_eq!(read_descomposition.fixed_quantity, BigDecimal::from_f64(2.0));
     assert_eq!(read_descomposition.params_json, None);
 }
 
@@ -114,13 +114,13 @@ async fn test_update_descomposition() {
         parent_price_id: parent_price.id,
         component_price_id: component_price.id,
         calculation_mode: CalculationMode::Fixed,
-        fixed_quantity: Some(2.0),
+        fixed_quantity: BigDecimal::from_f64(2.0),
         params_json: None,
     };
     let mut descomposition = Descomposition::create(&pool, new_descomposition).await.unwrap();
-    descomposition.fixed_quantity = Some(3.0);
+    descomposition.fixed_quantity = BigDecimal::from_f64(3.0);
     let updated_descomposition = Descomposition::update(&pool, descomposition).await.unwrap();
-    assert_eq!(updated_descomposition.fixed_quantity, Some(3.0));
+    assert_eq!(updated_descomposition.fixed_quantity, BigDecimal::from_f64(3.0));
 }
 
 #[tokio::test]
@@ -130,7 +130,7 @@ async fn test_delete_descomposition() {
         parent_price_id: parent_price.id,
         component_price_id: component_price.id,
         calculation_mode: CalculationMode::Fixed,
-        fixed_quantity: Some(2.0),
+        fixed_quantity: BigDecimal::from_f64(2.0),
         params_json: None,
     };
     let descomposition = Descomposition::create(&pool, new_descomposition).await.unwrap();
@@ -147,14 +147,27 @@ async fn test_list_descompositions() {
         parent_price_id: parent_price.id,
         component_price_id: component_price.id,
         calculation_mode: CalculationMode::Fixed,
-        fixed_quantity: Some(2.0),
+        fixed_quantity: Some(BigDecimal::from_f64(2.0).unwrap()),
         params_json: None,
     };
     Descomposition::create(&pool, new_descomposition1).await.unwrap();
 
+    let version = Version::read_by_id(&pool, parent_price.version_id).await.unwrap().unwrap();
+    let unit = Unit::read_by_id(&pool, parent_price.unit_id).await.unwrap().unwrap();
+    let mut rng = rand::thread_rng();
+    let new_component_price2 = NewPrice {
+        version_id: version.id,
+        code: format!("PRICE-COMPONENT-{}", Uuid::new_v4().to_string().chars().take(30).collect::<String>()),
+        description: "Component Price 2".to_string(),
+        base_price: BigDecimal::from_f64(rng.gen_range(10.0..50.0)).unwrap(),
+        unit_id: unit.id,
+        price_type: PriceType::Base,
+    };
+    let component_price2 = Price::create(&pool, new_component_price2).await.unwrap();
+
     let new_descomposition2 = NewDescomposition {
         parent_price_id: parent_price.id,
-        component_price_id: component_price.id,
+        component_price_id: component_price2.id,
         calculation_mode: CalculationMode::Formula,
         fixed_quantity: None,
         params_json: Some(json!({"x": 10, "y": 20})),
@@ -164,7 +177,7 @@ async fn test_list_descompositions() {
     let params = DescompositionParams {
         id: None,
         parent_price_id: Some(parent_price.id),
-        component_price_id: Some(component_price.id),
+        component_price_id: None,
         calculation_mode: None,
         page: None,
         limit: None,

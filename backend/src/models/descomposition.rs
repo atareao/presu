@@ -6,6 +6,7 @@ use sqlx::{
     QueryBuilder,
     Error, FromRow, Row,
     postgres::{PgPool, PgRow},
+    types::BigDecimal,
 };
 use tracing::debug;
 use super::{
@@ -57,7 +58,7 @@ pub struct Descomposition {
     pub component_price_id: i32, 
     pub calculation_mode: CalculationMode,
     // Cantidad fija (NULL si calculation_mode es 'formula')
-    pub fixed_quantity: Option<f64>, 
+    pub fixed_quantity: Option<BigDecimal>,
     // Parámetros JSON (NULL si calculation_mode es 'fixed')
     pub params_json: Option<Value>, 
     pub created_at: UtcTimestamp,
@@ -71,7 +72,7 @@ pub struct NewDescomposition {
     pub component_price_id: i32, 
     pub calculation_mode: CalculationMode,
     // Cantidad fija (NULL si calculation_mode es 'formula')
-    pub fixed_quantity: Option<f64>, 
+    pub fixed_quantity: Option<BigDecimal>,
     // Parámetros JSON (NULL si calculation_mode es 'fixed')
     pub params_json: Option<Value>, 
 }

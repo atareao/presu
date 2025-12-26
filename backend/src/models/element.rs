@@ -21,7 +21,7 @@ use std::fmt;
 // =================================================================
 
 #[derive(Debug, Type, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
-#[sqlx(type_name = "element_enum", rename_all = "lowercase")]
+#[sqlx(type_name = "element_type_enum", rename_all = "lowercase")]
 pub enum ElementType {
     #[serde(rename = "chapter")]
     Chapter,
@@ -52,12 +52,13 @@ impl Filterable for Option<ElementType> {
 #[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct Element {
     pub id: i32,
-    pub project_id: i32,
+    pub budget_id: i32,
     // Option<i32> permite la clave recursiva (NULL para elementos raíz)
     pub parent_id: Option<i32>, 
     pub version_id: i32, 
     // Mapeamos el ENUM element_enum a String
-    pub element_type: ElementType, 
+    pub element_type: ElementType,
+    pub code: String,
     pub budget_code: String,
     pub description: Option<String>,
 
@@ -68,12 +69,13 @@ pub struct Element {
 // DTO para la creación de una nueva versión de presupuesto
 #[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct NewElement {
-    pub project_id: i32,
+    pub budget_id: i32,
     // Option<i32> permite la clave recursiva (NULL para elementos raíz)
     pub parent_id: Option<i32>, 
     pub version_id: i32, 
     // Mapeamos el ENUM element_enum a String
     pub element_type: ElementType, 
+    pub code: String,
     pub budget_code: String,
     pub description: Option<String>,
 }
@@ -86,6 +88,7 @@ pub struct ElementParams {
     pub version_id: Option<i32>,
     pub element_type: Option<ElementType>,
     pub budget_code: Option<String>,
+    pub code: Option<String>,
     pub description: Option<String>,
 
     pub page: Option<u32>,
@@ -102,22 +105,24 @@ impl Element {
     const TABLE: &str = "elements";
     const INSERT_QUERY: &str = r#"
         (
-            project_id,
+            budget_id,
             parent_id,
             version_id,
             element_type,
+            code,
             budget_code,
             description
         )
-        VALUES ($1, $2, $3, $4, $5, $6)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
     "#;
     const UPDATE_QUERY: &str = r#"
-        project_id = $2,
+        budget_id = $2,
         parent_id = $3,
         version_id = $4,
         element_type = $5,
-        budget_code = $6,
-        description = $7
+        code = $6,
+        budget_code = $7,
+        description = $8
     "#;
 
     // =================================================================
@@ -147,6 +152,7 @@ impl Element {
         params.parent_id.append_filter(&mut query_builder, "parent_id");
         params.version_id.append_filter(&mut query_builder, "version_id");
         params.element_type.append_filter(&mut query_builder, "element_type");
+        params.code.append_filter(&mut query_builder, "code");
         params.budget_code.append_filter(&mut query_builder, "budget_code");
         params.description.append_filter(&mut query_builder, "description");
         query_builder
@@ -163,6 +169,7 @@ impl Element {
         params.parent_id.append_filter(&mut query_builder, "parent_id");
         params.version_id.append_filter(&mut query_builder, "version_id");
         params.element_type.append_filter(&mut query_builder, "element_type");
+        params.code.append_filter(&mut query_builder, "code");
         params.budget_code.append_filter(&mut query_builder, "budget_code");
         params.description.append_filter(&mut query_builder, "description");
         if let Some(sort_by) = &params.sort_by {
@@ -187,10 +194,11 @@ impl Element {
         let sql = format!("INSERT INTO {} {} RETURNING *", Self::TABLE, Self::INSERT_QUERY);
         debug!("Create: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.project_id)
+        .bind(item.budget_id)
         .bind(item.parent_id)
         .bind(item.version_id)
         .bind(item.element_type)
+        .bind(item.code)
         .bind(item.budget_code)
         .bind(item.description)
         .fetch_one(pg_pool)
@@ -206,10 +214,11 @@ impl Element {
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
         .bind(item.id)
-        .bind(item.project_id)
+        .bind(item.budget_id)
         .bind(item.parent_id)
         .bind(item.version_id)
         .bind(item.element_type)
+        .bind(item.code)
         .bind(item.budget_code)
         .bind(item.description)
         .fetch_one(pg_pool)
