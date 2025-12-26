@@ -40,6 +40,12 @@ pub struct NewUser {
     pub is_active: bool,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct UserPass {
+    pub email: String,
+    pub password: String,
+}
+
 #[derive(Debug, serde::Deserialize, macros::Paginable)]
 pub struct UserParams {
     pub id: Option<i32>,
@@ -183,4 +189,17 @@ impl User {
             .fetch_one(pg_pool)
             .await
     }
+    // =================================================================
+    // E: OTHERS
+    // =================================================================
+    /// Recupera un usuario por su email.
+    pub async fn read_by_email(pg_pool: &PgPool, email: String) -> Result<Option<Self>, Error> {
+        let sql = format!(r#"SELECT * FROM {} WHERE email = $1"#, Self::TABLE);
+        debug!("Read by: {}", &sql);
+        sqlx::query_as::<_, Self>(&sql)
+            .bind(&email)
+            .fetch_optional(pg_pool)
+            .await
+    }
+
 }

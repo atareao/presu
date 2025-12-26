@@ -1,5 +1,3 @@
-
-
 use backend::{models, http};
 
 use axum::{
@@ -56,6 +54,7 @@ use models::{
 };
 use http::{
     health,
+    auth,
 };
 use dotenv::dotenv;
 use models::{
@@ -128,6 +127,7 @@ async fn main() -> Result<(), Error> {
         .nest("/users", User::router())
         .nest("/versions", Version::router())
         .nest("/health", health::router())
+        .nest("/auth", auth::router())
         //.nest("/auth", user_router())
         //.nest("/users", api_user_router())
         .with_state(Arc::new(AppState {
