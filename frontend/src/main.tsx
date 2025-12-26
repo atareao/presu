@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import {  GlobalWorkerOptions } from "pdfjs-dist";
 import { pdfjs } from 'react-pdf';
-import App from './App.tsx';
+import App from '@/App';
 
 const workerUrl = `/assets/workers/pdf.worker.mjs`;
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -16,3 +16,4 @@ createRoot(document.getElementById('root')!).render(
         <App />
     </StrictMode>,
 )
+
