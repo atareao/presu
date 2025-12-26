@@ -1,21 +1,17 @@
 use backend::models::{
     unit::{Unit, NewUnit, UnitParams},
 };
-use sqlx::postgres::PgPoolOptions;
-use dotenv::dotenv;
-use std::env;
 use sqlx::PgPool;
 use uuid::Uuid;
 use serde_json::json;
 
+#[path = "common.rs"]
+mod common;
+
 async fn setup() -> PgPool {
-    dotenv().ok();
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgPoolOptions::new()
-        .max_connections(1)
-        .connect(&database_url)
-        .await
-        .expect("Failed to create pool.")
+    let _ = &common::TRACING;
+
+    common::setup_pool().await
 }
 
 #[tokio::test]

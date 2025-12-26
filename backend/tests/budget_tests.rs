@@ -2,21 +2,18 @@ use backend::models::{
     budget::{Budget, NewBudget, BudgetParams, BudgetStatus},
     project::{Project, NewProject},
 };
-use sqlx::postgres::PgPoolOptions;
-use dotenv::dotenv;
-use std::env;
 use sqlx::PgPool;
 use uuid::Uuid;
 use rand::Rng;
 
+#[path = "common.rs"]
+mod common;
+
 async fn setup() -> (PgPool, Project) {
-    dotenv().ok();
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let pool = PgPoolOptions::new()
-        .max_connections(1)
-        .connect(&database_url)
-        .await
-        .expect("Failed to create pool.");
+    let _ = &common::TRACING;
+
+    let pool = common::setup_pool().await;
+
     let new_project = NewProject {
         code: format!("P-TEST-{}", Uuid::new_v4()),
         title: Some("Test Project".to_string()),

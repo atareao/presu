@@ -1,7 +1,7 @@
-mod descomposition;
+pub mod descomposition;
 mod element;
 mod measurement;
-mod price;
+pub mod price;
 pub mod project;
 pub mod role;
 pub mod unit;
@@ -19,10 +19,10 @@ pub use filterable::Filterable;
 pub use paginable::Paginable;
 
 pub use budget::Budget;
-pub use descomposition::Descomposition;
+pub use descomposition::{Descomposition, NewDescomposition, DescompositionParams};
 pub use element::Element;
 pub use measurement::Measurement;
-pub use price::Price;
+pub use price::{Price, NewPrice, PriceParams};
 pub use project::{Project, NewProject, ProjectParams};
 pub use role::{Role, NewRole, RoleParams};
 pub use unit::{Unit, NewUnit, UnitParams};

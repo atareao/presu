@@ -2,20 +2,16 @@ use backend::models::{
     user::{User, NewUser, UserParams},
     role::{Role, NewRole},
 };
-use sqlx::postgres::PgPoolOptions;
-use dotenv::dotenv;
-use std::env;
 use sqlx::PgPool;
 use uuid::Uuid;
 
+#[path = "common.rs"]
+mod common;
+
 async fn setup() -> (PgPool, Role) {
-    dotenv().ok();
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let pool = PgPoolOptions::new()
-        .max_connections(1)
-        .connect(&database_url)
-        .await
-        .expect("Failed to create pool.");
+    let _ = &common::TRACING;
+
+    let pool = common::setup_pool().await;
     let new_role = NewRole {
         name: format!("R-TEST-{}", Uuid::new_v4()),
     };
