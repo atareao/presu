@@ -5,7 +5,14 @@ use axum::{
     response::IntoResponse,
     http::StatusCode,
 };
-use crate::models::{Data, ApiResponse, AppState, Project, Budget};
+use crate::models::{
+    Data,
+    ApiResponse,
+    AppState,
+    Project,
+    Budget,
+    User,
+};
 use std::sync::Arc;
 use tracing::{debug, error};
 
@@ -14,6 +21,7 @@ pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/projects", routing::get(count_projects))
         .route("/budgets", routing::get(count_budgets))
+        .route("/users", routing::get(count_users))
 }
 
 async fn count_projects(
@@ -51,6 +59,27 @@ async fn count_budgets(
             ApiResponse::create(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Error counting budgets",
+                Data::None,
+            )
+        }
+    }
+}
+
+async fn count_users(
+    State(app_state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    debug!("Counting users");
+    match User::count_all(&app_state.pool).await {
+        Ok(count) => ApiResponse::create(
+            StatusCode::OK,
+            "Users counted successfully",
+            Data::Some(serde_json::to_value(count).unwrap()),
+        ),
+        Err(e) => {
+            error!("Error counting users: {}", e);
+            ApiResponse::create(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Error counting users",
                 Data::None,
             )
         }

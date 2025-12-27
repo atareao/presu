@@ -95,7 +95,7 @@ pub async fn logout() -> impl IntoResponse {
     debug!("Logout");
     let cookie = Cookie::build(("token", ""))
         .path("/")
-        .max_age(cookie::time::Duration::hours(-1))
+        .max_age(cookie::time::Duration::ZERO)
         .same_site(SameSite::Lax)
         .http_only(true)
         .build();

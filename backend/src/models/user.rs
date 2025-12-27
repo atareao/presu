@@ -31,7 +31,7 @@ pub struct User {
 }
 
 // DTO para la actualización de datos del usuario (la contraseña se maneja aparte)
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct NewUser {
     pub username: String,
     pub email: String,
@@ -40,7 +40,7 @@ pub struct NewUser {
     pub is_active: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct UserPass {
     pub email: String,
     pub password: String,
@@ -199,6 +199,14 @@ impl User {
         sqlx::query_as::<_, Self>(&sql)
             .bind(&email)
             .fetch_optional(pg_pool)
+            .await
+    }
+    /// Devuelve el número total de registros en la tabla.
+    pub async fn count_all(pg_pool: &PgPool) -> Result<i64, Error> {
+        let sql = format!("SELECT COUNT(*) FROM {}", Self::TABLE);
+        debug!("Count all: {}", &sql);
+        sqlx::query_scalar::<_, i64>(&sql)
+            .fetch_one(pg_pool)
             .await
     }
 
