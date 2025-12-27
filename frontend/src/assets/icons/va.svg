@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="16"
+   height="16"
+   version="1.1"
+   id="svg499"
+   sodipodi:docname="va.svg"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs499" />
+  <sodipodi:namedview
+     id="namedview499"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="12.761863"
+     inkscape:cx="10.382497"
+     inkscape:cy="10.578393"
+     inkscape:window-width="1078"
+     inkscape:window-height="983"
+     inkscape:window-x="26"
+     inkscape:window-y="23"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg499" />
+  <title
+     id="title1">9 upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg</title>
+  <metadata
+     id="metadata499">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>9 upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="g1"
+     transform="matrix(0.66666656,0,0,0.66666656,1.3333331e-6,2.6967502)">
+    <rect
+       class="st0"
+       width="23.999989"
+       height="15.917297"
+       id="rect1-3"
+       x="1.3258789e-05"
+       y="4.0375919"
+       style="fill:#fcdd09;stroke-width:0.0187992" />
+    <rect
+       class="st1"
+       width="7.9999962"
+       height="15.917297"
+       id="rect2-6"
+       x="-2e-06"
+       y="4.0375805"
+       style="fill:#0072bc;stroke-width:0.0187992" />
+    <polygon
+       class="st2"
+       points="1276.2,752.8 1276.2,658.7 426,658.7 426,564.7 1276.2,564.7 1276.2,470.6 426,470.6 426,376.4 1276.2,376.4 1276.2,282.3 426,282.3 426,188.3 1276.2,188.3 1276.2,94.2 426,94.2 426,0 331.8,0 331.8,847 426,847 426,752.8 "
+       id="polygon2"
+       transform="matrix(0.01880582,0,0,0.01879256,1.4e-5,4.037592)"
+       style="fill:#da121a" />
+  </g>
+</svg>
