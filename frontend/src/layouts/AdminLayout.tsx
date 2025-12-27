@@ -24,7 +24,7 @@ import ModeSwitcher from '@/components/ModeSwitcher';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import AuthContext from '@/components/AuthContext';
 import logo from '@/assets/logo.svg';
-import backgroundImageURL from '@/assets/backgrounds/home_background.jpg';
+import backgroundImageURL from '@/assets/backgrounds/admin-background.jpg';
 import { VERSION } from "@/constants";
 
 const { Header, Content, Footer, Sider } = Layout;
@@ -97,14 +97,14 @@ const AdminLayout: React.FC = () => {
     if (!isLoggedIn || role !== ROLE) {
         return <Navigate to="/login" replace />;
     }
-
     return (
         <Layout style={{
             minHeight: '100vh',
-            backgroundImage: `linear-gradient(rgba(6, 94, 166, 0.55), rgba(6, 94, 166, 0.55)), url(${backgroundImageURL})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
+            backgroundImage: `linear-gradient(rgba(0, 21, 41, 0.7), rgba(0, 21, 41, 0.7)), url(${backgroundImageURL})`,
+            backgroundSize: 'cover',        // Asegura que ocupe todo el espacio 16:9
+            backgroundPosition: 'center',   // Centra la imagen
+            backgroundRepeat: 'no-repeat', // Evita que la imagen se repita
+            backgroundAttachment: 'fixed',  // Mantiene el fondo quieto al hacer scroll
         }}>
             <Sider
                 style={{ background: 'rgba(0, 0, 0, 0.9)' }}
@@ -137,7 +137,7 @@ const AdminLayout: React.FC = () => {
                         />
                         {!collapsed && (
                             <Typography.Title level={5} style={{ color: 'white', margin: 0, whiteSpace: 'nowrap' }}>
-                                preemer
+                                Presu
                             </Typography.Title>
                         )}
                     </Flex>

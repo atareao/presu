@@ -228,6 +228,18 @@ impl Budget {
             .fetch_one(pg_pool)
             .await
     }
+
+    // =================================================================
+    // E: OTHERS
+    // =================================================================
+    /// Devuelve el número total de registros en la tabla.
+    pub async fn count_all(pg_pool: &PgPool) -> Result<i64, Error> {
+        let sql = format!("SELECT COUNT(*) FROM {}", Self::TABLE);
+        debug!("Count all: {}", &sql);
+        sqlx::query_scalar::<_, i64>(&sql)
+            .fetch_one(pg_pool)
+            .await
+    }
 }
 
 #[cfg(test)]

@@ -5,7 +5,7 @@ import { LoginOutlined } from '@ant-design/icons';
 
 import ModeSwitcher from '@/components/ModeSwitcher';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
-import backgroundImageURL from '@/assets/backgrounds/admin_background.jpg';
+import backgroundImageURL from '@/assets/backgrounds/public-background.jpg';
 import { VERSION } from "@/constants";
 
 const { Header, Footer, Content } = Layout;

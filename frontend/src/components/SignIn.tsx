@@ -20,7 +20,7 @@ const SignIn: React.FC<SignInProps> = ({ onSubmit, responseMessage }) => {
 
     return (
         <Card
-            title={t('Login')}
+            title={t('Iniciar sesión')}
             style={{ width: 350, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
         >
             <Form
@@ -30,6 +30,16 @@ const SignIn: React.FC<SignInProps> = ({ onSubmit, responseMessage }) => {
                 onFinish={onFinish}
                 autoComplete="off"
             >
+                {/* Mensaje de error de la API si existe */}
+                {responseMessage && (
+                    <Form.Item>
+                        <Alert
+                            description={responseMessage}
+                            type="error"
+                            showIcon
+                        />
+                    </Form.Item>
+                )}
                 {/* Campo Email con validación */}
                 <Form.Item
                     name="email"
@@ -40,7 +50,7 @@ const SignIn: React.FC<SignInProps> = ({ onSubmit, responseMessage }) => {
                 >
                     <Input
                         prefix={<MailOutlined />}
-                        placeholder={t('Email')}
+                        placeholder={t('Correo')}
                         size="large"
                     />
                 </Form.Item>
@@ -52,22 +62,11 @@ const SignIn: React.FC<SignInProps> = ({ onSubmit, responseMessage }) => {
                 >
                     <Input.Password
                         prefix={<LockOutlined />}
-                        placeholder={t('Password')}
+                        placeholder={t('Contraseña')}
                         size="large"
                     />
                 </Form.Item>
 
-                {/* Mensaje de error de la API si existe */}
-                {responseMessage && (
-                    <Form.Item>
-                        <Alert
-                            message={responseMessage}
-                            type="error"
-                            showIcon
-                            closable
-                        />
-                    </Form.Item>
-                )}
 
                 <Form.Item style={{ marginBottom: 0 }}>
                     <Button
@@ -76,7 +75,7 @@ const SignIn: React.FC<SignInProps> = ({ onSubmit, responseMessage }) => {
                         block
                         size="large"
                     >
-                        {t('Sign in')}
+                        {t('Acceder')}
                     </Button>
                 </Form.Item>
             </Form>

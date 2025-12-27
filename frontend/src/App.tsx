@@ -1,4 +1,4 @@
-import React, { useState, useContext, lazy, Suspense } from 'react';
+import React, { useContext, lazy, Suspense } from 'react';
 import { ConfigProvider, theme } from 'antd';
 import { BrowserRouter, Routes, Route } from "react-router";
 
@@ -9,9 +9,8 @@ import es_antd from 'antd/locale/es_ES';
 import va_antd from 'antd/locale/ca_ES';
 import Backend from "i18next-http-backend";
 
-import ModeContext, {ModeContextProvider} from '@/components/ModeContext';
+import ModeContext, { ModeContextProvider } from '@/components/ModeContext';
 import { AuthContextProvider } from "@/components/AuthContext";
-import reactLogo from '@/assets/logo.svg';
 
 import es_location from "@/assets/locales/es/translation.json";
 import va_location from "@/assets/locales/va/translation.json";
@@ -19,7 +18,11 @@ import va_location from "@/assets/locales/va/translation.json";
 import '@/App.css';
 const PublicLayout = lazy(() => import('@/layouts/PublicLayout'));
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout'));
+/** Public **/
 const LoginPage = lazy(() => import('@/pages/public/LoginPage'));
+/** Admin **/
+const LogoutPage = lazy(() => import('@/pages/admin/LogoutPage'));
+const AdminHomePage = lazy(() => import('@/pages/admin/AdminHomePage'));
 
 // Inicialización de i18n
 i18n
@@ -68,15 +71,17 @@ const AppContent = () => {
                     <Routes>
                         {/* Tus rutas se mantienen exactamente igual */}
                         <Route path="/" element={<PublicLayout />} >
+                            <Route index element={<LoginPage />} />
                             <Route path="login" element={<LoginPage />} />
                         </Route>
-                        <Route path="/" element={<AdminLayout />} >
-                            <Route path="admin" >
-                                {/*
+                        <Route path="/admin" element={<AdminLayout />} >
+                            <Route index element={<AdminHomePage />} />
+                            <Route path="logout" element={<LogoutPage />} />
+
+                            {/*
                                 <Route index element={<ProjectsPage />} />
                                 <Route index element={<BudgetsPage />} />
                                 */}
-                            </Route>
                         </Route>
                     </Routes>
                 </Suspense>

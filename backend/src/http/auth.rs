@@ -41,11 +41,11 @@ pub async fn login(State(app_state): State<Arc<AppState>>, Json(user_pass): Json
             ApiResponse::new(StatusCode::FORBIDDEN, message, Data::None)
         })?
         .ok_or_else(|| {
-            let message = "Invalid name or password. Please <a href='/login'>log in</a>";
+            let message = "Invalid name or password";
             ApiResponse::new(StatusCode::FORBIDDEN, message, Data::None)
         })?;
     if !user.is_active || !verify(&user_pass.password, &user.hashed_password).unwrap() {
-        let message = "Invalid name or password. Please <a href='/login'>log in</a>";
+        let message = "Invalid name or password";
         return Err(ApiResponse::new(StatusCode::FORBIDDEN, message, Data::None));
     }
 

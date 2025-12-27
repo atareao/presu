@@ -55,6 +55,8 @@ use models::{
 use http::{
     health,
     auth,
+    stats,
+    fallback_404,
 };
 use dotenv::dotenv;
 use models::{
@@ -128,8 +130,8 @@ async fn main() -> Result<(), Error> {
         .nest("/versions", Version::router())
         .nest("/health", health::router())
         .nest("/auth", auth::router())
-        //.nest("/auth", user_router())
-        //.nest("/users", api_user_router())
+        .nest("/stats", stats::router())
+        .fallback(fallback_404)
         .with_state(Arc::new(AppState {
             pool,
             secret,
