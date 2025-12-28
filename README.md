@@ -4,11 +4,17 @@ Presu es una aplicación de presupuestos y gestión de proyectos. Está diseñad
 
 ## Características principales
 
-- **Gestión de proyectos**: Cree y organice sus proyectos, estableciendo versiones de base y realizando un seguimiento de su progreso.
-- **Catálogo de precios**: Gestione un catálogo centralizado de precios, unidades y descomposiciones para agilizar la creación de presupuestos.
-- **Presupuestos flexibles**: Genere diferentes versiones de sus presupuestos dentro de un mismo proyecto, permitiendo una fácil comparación y ajuste.
-- **Mediciones detalladas**: Introduzca mediciones precisas para cada elemento de su presupuesto.
-- **Control de versiones**: Utilice diferentes versiones del catálogo de precios para sus proyectos y presupuestos.
+- **Gestión de Proyectos y Presupuestos**: Cree proyectos y, dentro de cada uno, gestione múltiples versiones de presupuestos de forma independiente. Realice un seguimiento del estado de cada presupuesto (`borrador`, `aprobado`, `rechazado`, etc.).
+
+- **Estructura Jerárquica de Presupuestos**: Organice los presupuestos en una estructura de árbol con capítulos y partidas (`elements`), permitiendo una descomposición del trabajo clara y detallada.
+
+- **Catálogo de Precios Centralizado y Versionado**: Administre múltiples versiones de sus catálogos de precios. Cada proyecto se vincula a un catálogo base, con la flexibilidad de anularlo para partidas específicas.
+
+- **Análisis de Precios Unitarios (APU)**: Defina precios complejos que se descomponen en una combinación de otros precios (por ejemplo, materiales, mano de obra, maquinaria), lo que permite un análisis de costes detallado y preciso.
+
+- **Mediciones Parametrizadas y Calculadas**: Vaya más allá de las cantidades simples. Defina mediciones utilizando fórmulas y parámetros (por ejemplo, calculando el área a partir del largo y el ancho directamente en la línea de medición).
+
+- **Gestión de Usuarios y Roles**: Controle el acceso y los permisos con un sistema basado en roles (`admin`, `master`, `writer`, `reader`), garantizando la seguridad de los datos y un flujo de trabajo adecuado.
 
 ## Tecnología
 
