@@ -1,5 +1,10 @@
 # Presu
 
+![Logo de Presu](frontend/public/logo.svg)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/tu_usuario/tu_repositorio/actions)
+
 Presu es una aplicación de presupuestos y gestión de proyectos. Está diseñada para ser una herramienta potente y flexible para profesionales y empresas que necesitan crear, gestionar y realizar un seguimiento de los presupuestos de sus proyectos.
 
 ## Características principales
