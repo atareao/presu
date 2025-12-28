@@ -1,6 +1,6 @@
 # Presu
 
-![Logo de Presu](frontend/public/logo.svg)
+![Logo de Presu](https://raw.githubusercontent.com/tu_usuario/tu_repositorio/main/frontend/public/logo.svg)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/tu_usuario/tu_repositorio/actions)
