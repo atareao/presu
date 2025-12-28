@@ -47,12 +47,11 @@ const PublicLayout: React.FC = () => {
             </Header>
 
             <Content style={{
-                paddingTop: 150,
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 overflowY: 'auto',
+                padding: '20px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
             }}>
                 <Outlet />
             </Content>

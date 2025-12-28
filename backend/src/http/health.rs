@@ -14,6 +14,6 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 async fn check_health() -> impl IntoResponse {
-    ApiResponse::create(StatusCode::OK, "Up and running", Data::None)
+    ApiResponse::new(StatusCode::OK, "Up and running", Data::None)
 }
 

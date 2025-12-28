@@ -20,6 +20,7 @@ const PublicLayout = lazy(() => import('@/layouts/PublicLayout'));
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout'));
 /** Public **/
 const LoginPage = lazy(() => import('@/pages/public/LoginPage'));
+const RegisterPage = lazy(() => import('@/pages/public/RegisterPage'));
 /** Admin **/
 const LogoutPage = lazy(() => import('@/pages/admin/LogoutPage'));
 const AdminHomePage = lazy(() => import('@/pages/admin/AdminHomePage'));
@@ -73,6 +74,7 @@ const AppContent = () => {
                         <Route path="/" element={<PublicLayout />} >
                             <Route index element={<LoginPage />} />
                             <Route path="login" element={<LoginPage />} />
+                            <Route path="register" element={<RegisterPage />} />
                         </Route>
                         <Route path="/admin" element={<AdminLayout />} >
                             <Route index element={<AdminHomePage />} />

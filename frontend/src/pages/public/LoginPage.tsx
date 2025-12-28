@@ -1,4 +1,4 @@
-import React, { useState, useContext, useCallback } from 'react';
+import React, { useState, useContext, useCallback, useEffect } from 'react';
 import { Navigate } from "react-router";
 import { Flex, Card, Input, Button, Form, Alert, Typography } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
@@ -14,12 +14,35 @@ const { Title } = Typography;
 const LoginPage: React.FC = () => {
     const { t } = useTranslation();
     const { isLoggedIn, role, login: authLogin } = useContext(AuthContext);
-    
+
     const [form] = Form.useForm();
     const [showMessage, setShowMessage] = useState(false);
     const [messageText, setMessageText] = useState<string>('');
     const [messageType, setMessageType] = useState<'success' | 'error' | 'info' | 'warning'>('info');
+    const [usersCount, setUsersCount] = useState(0);
     const [loading, setLoading] = useState(false);
+
+    const fetchUsersCount = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${BASE_URL}/api/v1/stats/users`);
+            if (response.ok) {
+                const result = await response.json();
+                setUsersCount(result.data.count || 0);
+            }
+        } catch (error) {
+            setUsersCount(0);
+        } finally {
+            setLoading(false);
+        }
+    }, [usersCount]);
+
+    useEffect(() => {
+        if(!loading) {
+            fetchUsersCount();
+
+        }
+    });
 
     // Redirección si ya está autenticado
     if (isLoggedIn) {
@@ -40,7 +63,7 @@ const LoginPage: React.FC = () => {
 
     const onFinish = async (values: any) => {
         setLoading(true);
-        
+
         try {
             const response = await fetch(`${BASE_URL}/api/v1/auth/login`, {
                 method: 'POST',
@@ -64,21 +87,22 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <Flex 
-            justify="center" 
-            align="center" 
-            vertical 
-            style={{ minHeight: '100vh', padding: '20px' }}
+        <Flex
+            justify="center"
+            align="center"
+            vertical
         >
             <div style={{ textAlign: 'center', marginBottom: 30 }}>
-                <img 
-                    src={Logo} 
-                    alt="Logo" 
-                    style={{ width: 180, marginBottom: 10 }} 
+                <img
+                    src={Logo}
+                    alt="Logo"
+                    style={{ width: 180, marginBottom: 10 }}
                 />
             </div>
 
-            <Card 
+            {usersCount == 0 && <Navigate to='/register' replace />};
+
+            {usersCount > 0 && <Card
                 title={<Title level={4} style={{ margin: 0, textAlign: 'center' }}>{t('Iniciar sesión')}</Title>}
                 style={{ width: '100%', maxWidth: 380, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', borderRadius: 12 }}
             >
@@ -107,9 +131,9 @@ const LoginPage: React.FC = () => {
                             { type: 'email', message: t('Formato de email no válido') }
                         ]}
                     >
-                        <Input 
-                            prefix={<MailOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />} 
-                            placeholder={t('Correo electrónico')} 
+                        <Input
+                            prefix={<MailOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                            placeholder={t('Correo electrónico')}
                         />
                     </Form.Item>
 
@@ -135,7 +159,7 @@ const LoginPage: React.FC = () => {
                         </Button>
                     </Form.Item>
                 </Form>
-            </Card>
+            </Card> }
         </Flex>
     );
 };

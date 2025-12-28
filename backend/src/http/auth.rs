@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use axum::{
     body,
-    extract::State,
+    extract::{
+        State,
+        Path,
+    },
     http::{header, StatusCode},
     response::{IntoResponse, Response},
     routing, Json, Router,
@@ -13,13 +16,14 @@ use tracing::{debug, error};
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use jsonwebtoken::{encode, EncodingKey, Header};
 
-use crate::models::{ApiResponse, AppState, Data, TokenClaims, User, UserPass, NewUser};
+use crate::models::{ApiResponse, AppState, Data, TokenClaims, User, UserPass, NewUser, Role};
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/login", routing::post(login))
         .route("/logout", routing::get(logout))
         .route("/register", routing::post(register))
+        .route("/role/{name}", routing::get(get_role))
 }
 
 pub fn api_user_router() -> Router<Arc<AppState>> {
@@ -125,6 +129,31 @@ pub async fn read(
         Err(e) => {
             error!("Error reading values: {:?}", e);
             ApiResponse::new(StatusCode::BAD_REQUEST, &format!("Error reading values: {}", e), Data::None)
+        }
+    }
+}
+
+pub async fn get_role(
+    State(app_state): State<Arc<AppState>>,
+    Path(name): Path<String>,
+) -> impl IntoResponse {
+    debug!("Get role by name: {}", &name);
+    match Role::read_by_name(&app_state.pool, &name).await {
+        Ok(Some(role)) => {
+            debug!("Role: {:?}", role);
+            ApiResponse::new(
+                StatusCode::OK,
+                "Role",
+                Data::Some(serde_json::to_value(role).unwrap()),
+            )
+        }
+        Ok(None) => {
+            debug!("Role not found: {}", &name);
+            ApiResponse::new(StatusCode::NOT_FOUND, "Role not found", Data::None)
+        }
+        Err(e) => {
+            error!("Error reading role: {:?}", e);
+            ApiResponse::new(StatusCode::BAD_REQUEST, &format!("Error reading role: {}", e), Data::None)
         }
     }
 }

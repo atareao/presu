@@ -148,4 +148,16 @@ impl Role {
             .fetch_one(pg_pool)
             .await
     }
+    // =================================================================
+    // E: OTHERS
+    // =================================================================
+    /// Recupera un role por su name.
+    pub async fn read_by_name(pg_pool: &PgPool, name: &str) -> Result<Option<Self>, Error> {
+        let sql = format!(r#"SELECT * FROM {} WHERE name = $1"#, Self::TABLE);
+        debug!("Read by: {}", &sql);
+        sqlx::query_as::<_, Self>(&sql)
+            .bind(name)
+            .fetch_optional(pg_pool)
+            .await
+    }
 }

@@ -29,14 +29,14 @@ async fn count_projects(
 ) -> impl IntoResponse {
     debug!("Counting projects");
     match Project::count_all(&app_state.pool).await {
-        Ok(count) => ApiResponse::create(
+        Ok(count) => ApiResponse::new(
             StatusCode::OK,
             "Projects counted successfully",
             Data::Some(serde_json::to_value(count).unwrap()),
         ),
         Err(e) => {
             error!("Error counting projects: {}", e);
-            ApiResponse::create(
+            ApiResponse::new(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Error counting projects",
                 Data::None,
@@ -49,14 +49,14 @@ async fn count_budgets(
 ) -> impl IntoResponse {
     debug!("Counting budgets");
     match Budget::count_all(&app_state.pool).await {
-        Ok(count) => ApiResponse::create(
+        Ok(count) => ApiResponse::new(
             StatusCode::OK,
             "Budgets counted successfully",
             Data::Some(serde_json::to_value(count).unwrap()),
         ),
         Err(e) => {
             error!("Error counting budgets: {}", e);
-            ApiResponse::create(
+            ApiResponse::new(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Error counting budgets",
                 Data::None,
@@ -70,14 +70,14 @@ async fn count_users(
 ) -> impl IntoResponse {
     debug!("Counting users");
     match User::count_all(&app_state.pool).await {
-        Ok(count) => ApiResponse::create(
+        Ok(count) => ApiResponse::new(
             StatusCode::OK,
             "Users counted successfully",
             Data::Some(serde_json::to_value(count).unwrap()),
         ),
         Err(e) => {
             error!("Error counting users: {}", e);
-            ApiResponse::create(
+            ApiResponse::new(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Error counting users",
                 Data::None,

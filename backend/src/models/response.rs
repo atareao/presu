@@ -63,9 +63,6 @@ impl ApiResponse {
             data,
         }
     }
-    pub fn create(status: StatusCode, message: &str, data: Data) -> Json<ApiResponse> {
-        Json(ApiResponse::new(status, message, data))
-    }
 }
 
 impl From<ApiResponse> for CustomResponse {
@@ -94,12 +91,8 @@ impl From<PagedResponse> for CustomResponse {
 
 impl IntoResponse for ApiResponse {
     fn into_response(self) -> Response {
-        let body = serde_json::to_string(&self).unwrap();
-        Response::builder()
-            .status(self.status)
-            .header("Content-Type", "application/json")
-            .body(Body::from(body))
-            .unwrap()
+        let status = StatusCode::from_u16(self.status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+        (status, Json(self)).into_response()
     }
 }
 
@@ -167,19 +160,12 @@ impl PagedResponse {
             pagination,
         }
     }
-    pub fn create(status: StatusCode, message: &str, data: Data, pagination: Pagination) -> Json<PagedResponse> {
-        Json(PagedResponse::new(status, message, data, pagination))
-    }
 }
 
 impl IntoResponse for PagedResponse {
     fn into_response(self) -> Response {
-        let body = serde_json::to_string(&self).unwrap();
-        Response::builder()
-            .status(self.status)
-            .header("Content-Type", "application/json")
-            .body(Body::from(body))
-            .unwrap()
+        let status = StatusCode::from_u16(self.status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+        (status, Json(self)).into_response()
     }
 }
 
@@ -191,7 +177,7 @@ pub struct EmptyResponse {
 impl EmptyResponse {
     pub fn create(status: StatusCode, message: &str) -> Response<Body> {
         Response::builder()
-            .status(status) 
+            .status(status)
             .body(Body::from(message.to_string())) // Cuerpo de la respuesta
             .unwrap()
     }

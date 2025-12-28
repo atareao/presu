@@ -6,9 +6,9 @@ pub mod auth;
 pub mod stats;
 
 pub async fn fallback_404() -> impl axum::response::IntoResponse {
-    ApiResponse::create(
+    ApiResponse::new(
         StatusCode::NOT_FOUND,
-        "Up and running",
+        "Not found",
         Data::None
     )
 }
