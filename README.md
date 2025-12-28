@@ -115,6 +115,7 @@ erDiagram
     users {
         int id PK
         int role_id FK
+        varchar username
         varchar email
         varchar hashed_password
         boolean is_active
@@ -128,12 +129,16 @@ erDiagram
     units {
         int id PK
         varchar name
+        varchar description
+        text base_formula
+        jsonb expected_params_json
     }
     
     projects {
         int id PK
         int base_version_id FK
-        varchar name
+        varchar code
+        varchar title
     }
     
     prices {
@@ -141,6 +146,7 @@ erDiagram
         int version_id FK "Catálogo de precios"
         int unit_id FK
         varchar code
+        text description
         numeric base_price
         price_type_enum price_type
     }
@@ -150,27 +156,36 @@ erDiagram
         int parent_price_id FK
         int component_price_id FK
         calculation_mode_enum calculation_mode
+        numeric fixed_quantity
+        jsonb params_json
     }
     
     budget_versions {
         int id PK
         int project_id FK
+        varchar code
         int version_number
+        varchar name
         budget_status_enum status
     }
     
     elements {
         int id PK
-        int budget_version_id FK
+        int budget_id FK
         int parent_id FK "Jerarquía Recursiva"
         int version_id FK "Override de catálogo"
-        element_enum element_type
+        element_type_enum element_type
+        varchar code
         varchar budget_code
+        text description
     }
     
     measurements {
-        int element_id PK,FK "1:1 con elements"
+        int id PK
+        int element_id FK
         int price_id FK
+        jsonb params_json
+        text measurement_text
         numeric measured_quantity
     }
     
@@ -185,7 +200,7 @@ erDiagram
     projects ||--o{ budget_versions : has
     budget_versions ||--o{ elements : contains
     elements ||--o{ elements : has_parent
-    elements ||--|| measurements : has_detail
+    elements ||--o{ measurements : has_detail
 
     %% CATÁLOGO DE PRECIOS
     versions ||--o{ projects : default_version_is
