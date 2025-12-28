@@ -103,6 +103,7 @@ Una vez que todo esté en marcha, la aplicación frontend debería ser accesible
 
 A continuación se muestra un diagrama de Entidad-Relación que representa la estructura de la base de datos.
 
+```
 erDiagram
     %% ----------------------------------------------------
     %% ENTITIES: DEFINICIÓN DE LAS TABLAS CON CLAVES Y CAMPOS CRÍTICOS
@@ -212,3 +213,4 @@ erDiagram
     prices ||--o{ decompositions : is_decomposed_by "parent_price_id"
     prices ||--o{ decompositions : contains_component "component_price_id"
     prices ||--o{ measurements : provides_cost "price_id"
+```
