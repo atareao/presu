@@ -1,4 +1,4 @@
-use serde::{Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 
 #[derive(Debug, Clone)]
@@ -19,6 +19,16 @@ impl Serialize for Data {
     }
 }
 
+impl<'de> Deserialize<'de> for Data {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value: Option<Value> = Option::deserialize(deserializer)?;
+        Ok(value.map(Data::Some).unwrap_or(Data::None))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -36,7 +46,24 @@ mod tests {
         let value = json!({ "key": "value" });
         let data = Data::Some(value.clone());
         let serialized = serde_json::to_string(&data).unwrap();
-        assert_eq!(serialized, "{\"key\":\"value\"}");
+        assert_eq!(serialized, r#"{"key":"value"}"#);
+    }
+
+    #[test]
+    fn test_deserialize_data_none() {
+        let json_str = "null";
+        let deserialized: Data = serde_json::from_str(json_str).unwrap();
+        assert!(matches!(deserialized, Data::None));
+    }
+
+    #[test]
+    fn test_deserialize_data_some() {
+        let json_str = r#"{"key":"value"}"#;
+        let deserialized: Data = serde_json::from_str(json_str).unwrap();
+        match deserialized {
+            Data::Some(value) => assert_eq!(value, json!({ "key": "value" })),
+            Data::None => panic!("Expected Data::Some"),
+        }
     }
 }
 

@@ -12,7 +12,7 @@ mod data;
 mod response;
 mod filterable;
 mod paginable;
-mod token_claims;
+pub mod token_claims;
 
 pub type UtcTimestamp = chrono::DateTime<chrono::Utc>;
 pub type Error = Box<dyn std::error::Error>;

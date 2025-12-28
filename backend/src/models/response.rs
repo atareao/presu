@@ -10,7 +10,7 @@ use axum::{
         IntoResponse,
     }
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use super::paginable::Paginable;
 
 use super::Data;
@@ -48,7 +48,7 @@ impl CustomResponse {
 pub type PdfResponse = (HeaderMap, Vec<u8>);
 
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ApiResponse {
     pub status: u16,
     pub message: String,
