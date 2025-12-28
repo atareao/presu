@@ -11,7 +11,7 @@ BEFORE UPDATE ON roles
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
 INSERT INTO roles (name) VALUES 
-('SYSTEM_ADMIN'),
-('CATALOG_MANAGER'),
-('PROJECT_MANAGER'),
-('READER');
+('admin'),
+('master'),
+('writer'),
+('reader');
