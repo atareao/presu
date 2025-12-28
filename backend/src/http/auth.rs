@@ -52,13 +52,23 @@ pub async fn login(State(app_state): State<Arc<AppState>>, Json(user_pass): Json
         let message = "Invalid name or password";
         return Err(ApiResponse::new(StatusCode::FORBIDDEN, message, Data::None));
     }
+    let role = Role::read_by_id(&app_state.pool, user.role_id)
+        .await
+        .map_err(|e| {
+            let message = &format!("Error: {}", e);
+            ApiResponse::new(StatusCode::FORBIDDEN, message, Data::None)
+        })?
+        .ok_or_else(|| {
+            let message = "Role not found";
+            ApiResponse::new(StatusCode::FORBIDDEN, message, Data::None)
+        })?;
 
     let now = chrono::Utc::now();
     let iat = now.timestamp() as usize;
     let exp = (now + chrono::Duration::minutes(60)).timestamp() as usize;
     let claims: TokenClaims = TokenClaims {
         sub: user.email.to_string(),
-        role_id: user.role_id,
+        role: role.name.to_string(),
         exp,
         iat,
     };

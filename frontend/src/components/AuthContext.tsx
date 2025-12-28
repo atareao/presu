@@ -47,6 +47,7 @@ export const AuthContextProvider: React.FC<Props> = ({ children }) => {
         if (storedToken) {
             try {
                 const decoded = jwtDecode<CustomJwtPayload>(storedToken);
+                console.log("Decoded:", decoded);
                 const expirationTime = decoded.exp ? decoded.exp : 0;
                 const remainingTime = calculateRemainingTime(expirationTime);
 

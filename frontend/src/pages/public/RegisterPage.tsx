@@ -1,7 +1,7 @@
-import React, { useState, useContext, useCallback, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { Navigate } from "react-router";
-import { Flex, Card, Input, Button, Form, Alert, Typography } from 'antd';
-import { MailOutlined, LockOutlined } from '@ant-design/icons';
+import { Flex, Card, Input, Button, Form, Alert, Typography, Spin } from 'antd';
+import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useTranslation } from "react-i18next";
 import { hashSync } from 'bcrypt-ts';
 
@@ -20,29 +20,30 @@ const RegisterPage: React.FC = () => {
     const [showMessage, setShowMessage] = useState(false);
     const [messageText, setMessageText] = useState<string>('');
     const [messageType, setMessageType] = useState<'success' | 'error' | 'info' | 'warning'>('info');
-    const [usersCount, setUsersCount] = useState(0);
+    const [usersCount, setUsersCount] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
-
-    const fetchUsersCount = useCallback(async () => {
-        setLoading(true);
-        try {
-            const response = await fetch(`${BASE_URL}/api/v1/stats/users`);
-            if (response.ok) {
-                const result = await response.json();
-                setUsersCount(result.data.count || 0);
-            }
-        } catch (error) {
-            setUsersCount(0);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
+        const fetchUsersCount = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch(`${BASE_URL}/api/v1/stats/users`);
+                if (response.ok) {
+                    const result = await response.json();
+                    setUsersCount(result.users || 0);
+                } else {
+                    setUsersCount(1); // Fallback to prevent registration if stats are down
+                }
+            } catch (error) {
+                setUsersCount(1); // Fallback to prevent registration
+            } finally {
+                setLoading(false);
+            }
+        };
         fetchUsersCount();
     }, []);
 
-    // Redirección si ya está autenticado
     if (isLoggedIn) {
         return <Navigate to={role === "admin" ? "/admin/" : "/"} replace />;
     }
@@ -58,32 +59,22 @@ const RegisterPage: React.FC = () => {
         hideMessage();
     };
 
-
     const onFinish = async (values: any) => {
-        console.log(values);
-        try {
-            if(values.password !== values.confirm_password) {
-                displayMessage(t("Las contraseñas no coinciden"), 'error');
-                return;
-            }
-            const rolesResponse = await fetch(`${BASE_URL}/api/v1/role/SYSTEM_ADMIN`, {
-                method: 'GET',
-            });
-            console.log(rolesResponse);
-            if(rolesResponse.ok) {
-                const rolesJson = await rolesResponse.json();
-                const roles = rolesJson.data;
-                console.log(roles);
-            }
+        if (values.password !== values.confirm_password) {
+            displayMessage(t("Las contraseñas no coinciden"), 'error');
             return;
+        }
+        setSubmitting(true);
+        try {
             const hashedPassword = hashSync(values.password, 10);
             const data = {
                 username: values.username,
                 email: values.email,
                 hashed_password: hashedPassword,
-                role_id: 1,
+                role_id: 1, // First user will be admin
                 is_active: true,
-            }
+            };
+
             const response = await fetch(`${BASE_URL}/api/v1/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -93,17 +84,24 @@ const RegisterPage: React.FC = () => {
             const responseJson = await response.json();
 
             if (response.ok) {
-                // authLogin guarda el token y actualiza el estado global
                 authLogin(responseJson.data.token);
             } else {
-                displayMessage(responseJson.message || t("Error al iniciar sesión"), 'error');
+                displayMessage(responseJson.message || t("Error en el registro"), 'error');
             }
         } catch (error) {
             displayMessage(t("Error de conexión con el servidor"), 'error');
         } finally {
-            setLoading(false);
+            setSubmitting(false);
         }
     };
+
+    if (loading || usersCount === null) {
+        return <Spin fullscreen />;
+    }
+
+    if (usersCount > 0) {
+        return <Navigate to="/login" replace />;
+    }
 
     return (
         <Flex
@@ -118,16 +116,13 @@ const RegisterPage: React.FC = () => {
                     style={{ width: 180, marginBottom: 10 }}
                 />
             </div>
-
-            {usersCount > 0 && <Navigate to='/login' replace />}
-
-            {usersCount == 0 && <Card
+            <Card
                 title={<Title level={4} style={{ margin: 0, textAlign: 'center' }}>{t('Registrar usuario')}</Title>}
                 style={{ width: '100%', maxWidth: 380, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', borderRadius: 12 }}
             >
                 <Form
                     form={form}
-                    name="login_form"
+                    name="register_form"
                     layout="vertical"
                     onFinish={onFinish}
                     autoComplete="off"
@@ -145,12 +140,10 @@ const RegisterPage: React.FC = () => {
 
                     <Form.Item
                         name="username"
-                        rules={[
-                            { required: true, message: t('Por favor introduce tu nombre de usuario') },
-                        ]}
+                        rules={[{ required: true, message: t('Por favor introduce tu nombre de usuario') }]}
                     >
                         <Input
-                            prefix={<MailOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                            prefix={<UserOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
                             placeholder={t('Nombre de usuario')}
                         />
                     </Form.Item>
@@ -166,7 +159,6 @@ const RegisterPage: React.FC = () => {
                             placeholder={t('Correo electrónico')}
                         />
                     </Form.Item>
-
                     <Form.Item
                         name="password"
                         rules={[{ required: true, message: t('Por favor introduce tu contraseña') }]}
@@ -176,33 +168,41 @@ const RegisterPage: React.FC = () => {
                             placeholder={t('Contraseña')}
                         />
                     </Form.Item>
-
                     <Form.Item
                         name="confirm_password"
-                        rules={[{ required: true, message: t('Por favor introduce de nuevo tu contraseña') }]}
+                        dependencies={['password']}
+                        rules={[
+                            { required: true, message: t('Por favor introduce de nuevo tu contraseña') },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (!value || getFieldValue('password') === value) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject(new Error(t('Las contraseñas no coinciden')));
+                                },
+                            }),
+                        ]}
                     >
                         <Input.Password
                             prefix={<LockOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                            placeholder={t('Contraseña')}
+                            placeholder={t('Confirmar contraseña')}
                         />
                     </Form.Item>
-
                     <Form.Item style={{ marginBottom: 0, marginTop: 10 }}>
                         <Button
                             type="primary"
                             htmlType="submit"
                             block
-                            loading={loading}
+                            loading={submitting}
                             style={{ fontWeight: 600, height: 45 }}
                         >
                             {t('Registrar')}
                         </Button>
                     </Form.Item>
                 </Form>
-            </Card> }
+            </Card>
         </Flex>
     );
 };
 
 export default RegisterPage;
-

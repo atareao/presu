@@ -1,6 +1,6 @@
-import React, { useState, useContext, useCallback, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { Navigate } from "react-router";
-import { Flex, Card, Input, Button, Form, Alert, Typography } from 'antd';
+import { Flex, Card, Input, Button, Form, Alert, Typography, Spin } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { useTranslation } from "react-i18next";
 
@@ -19,39 +19,33 @@ const LoginPage: React.FC = () => {
     const [showMessage, setShowMessage] = useState(false);
     const [messageText, setMessageText] = useState<string>('');
     const [messageType, setMessageType] = useState<'success' | 'error' | 'info' | 'warning'>('info');
-    const [usersCount, setUsersCount] = useState(0);
+    const [usersCount, setUsersCount] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
-
-    const fetchUsersCount = useCallback(async () => {
-        setLoading(true);
-        try {
-            const response = await fetch(`${BASE_URL}/api/v1/stats/users`);
-            if (response.ok) {
-                const result = await response.json();
-                setUsersCount(result.data.count || 0);
-            }
-        } catch (error) {
-            setUsersCount(0);
-        } finally {
-            setLoading(false);
-        }
-    }, [usersCount]);
-
-    useEffect(() => {
-        if(!loading) {
-            fetchUsersCount();
-
-        }
-    });
-
-    // Redirección si ya está autenticado
-    if (isLoggedIn) {
-        return <Navigate to={role === "admin" ? "/admin/" : "/"} replace />;
-    }
 
     const hideMessage = useCallback(debounce(() => {
         setShowMessage(false);
     }, 3000), []);
+
+
+    useEffect(() => {
+        const fetchUsersCount = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch(`${BASE_URL}/api/v1/stats/users`);
+                if (response.ok) {
+                    const result = await response.json();
+                    setUsersCount(result.data || 0);
+                } else {
+                    setUsersCount(0);
+                }
+            } catch (error) {
+                setUsersCount(0);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUsersCount();
+    }, []);
 
     const displayMessage = (text: string, type: 'success' | 'error' | 'info' | 'warning') => {
         setShowMessage(true);
@@ -86,82 +80,91 @@ const LoginPage: React.FC = () => {
         }
     };
 
-    return (
-        <Flex
-            justify="center"
-            align="center"
-            vertical
-        >
-            <div style={{ textAlign: 'center', marginBottom: 30 }}>
-                <img
-                    src={Logo}
-                    alt="Logo"
-                    style={{ width: 180, marginBottom: 10 }}
-                />
-            </div>
+    let content;
 
-            {usersCount == 0 && <Navigate to='/register' replace />};
-
-            {usersCount > 0 && <Card
-                title={<Title level={4} style={{ margin: 0, textAlign: 'center' }}>{t('Iniciar sesión')}</Title>}
-                style={{ width: '100%', maxWidth: 380, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', borderRadius: 12 }}
+    if (isLoggedIn) {
+        content = <Navigate to={role === "admin" ? "/admin/" : "/"} replace />;
+    } else if (loading || usersCount === null) {
+        content = <Spin fullscreen />;
+    } else if (usersCount === 0) {
+        content = <Navigate to="/register" replace />;
+    } else {
+        content = (
+            <Flex
+                justify="center"
+                align="center"
+                vertical
             >
-                <Form
-                    form={form}
-                    name="login_form"
-                    layout="vertical"
-                    onFinish={onFinish}
-                    autoComplete="off"
-                    size="large"
+                <div style={{ textAlign: 'center', marginBottom: 30 }}>
+                    <img
+                        src={Logo}
+                        alt="Logo"
+                        style={{ width: 180, marginBottom: 10 }}
+                    />
+                </div>
+
+                <Card
+                    title={<Title level={4} style={{ margin: 0, textAlign: 'center' }}>{t('Iniciar sesión')}</Title>}
+                    style={{ width: '100%', maxWidth: 380, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', borderRadius: 12 }}
                 >
-                    {showMessage && (
-                        <Alert
-                            description={messageText}
-                            type={messageType}
-                            showIcon
-                            closable
-                            style={{ marginBottom: 20 }}
-                        />
-                    )}
-
-                    <Form.Item
-                        name="email"
-                        rules={[
-                            { required: true, message: t('Por favor introduce tu email') },
-                            { type: 'email', message: t('Formato de email no válido') }
-                        ]}
+                    <Form
+                        form={form}
+                        name="login_form"
+                        layout="vertical"
+                        onFinish={onFinish}
+                        autoComplete="off"
+                        size="large"
                     >
-                        <Input
-                            prefix={<MailOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                            placeholder={t('Correo electrónico')}
-                        />
-                    </Form.Item>
+                        {showMessage && (
+                            <Alert
+                                description={messageText}
+                                type={messageType}
+                                showIcon
+                                closable
+                                style={{ marginBottom: 20 }}
+                            />
+                        )}
 
-                    <Form.Item
-                        name="password"
-                        rules={[{ required: true, message: t('Por favor introduce tu contraseña') }]}
-                    >
-                        <Input.Password
-                            prefix={<LockOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                            placeholder={t('Contraseña')}
-                        />
-                    </Form.Item>
-
-                    <Form.Item style={{ marginBottom: 0, marginTop: 10 }}>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            block
-                            loading={loading}
-                            style={{ fontWeight: 600, height: 45 }}
+                        <Form.Item
+                            name="email"
+                            rules={[
+                                { required: true, message: t('Por favor introduce tu email') },
+                                { type: 'email', message: t('Formato de email no válido') }
+                            ]}
                         >
-                            {t('Acceder')}
-                        </Button>
-                    </Form.Item>
-                </Form>
-            </Card> }
-        </Flex>
-    );
+                            <Input
+                                prefix={<MailOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                                placeholder={t('Correo electrónico')}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="password"
+                            rules={[{ required: true, message: t('Por favor introduce tu contraseña') }]}
+                        >
+                            <Input.Password
+                                prefix={<LockOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                                placeholder={t('Contraseña')}
+                            />
+                        </Form.Item>
+
+                        <Form.Item style={{ marginBottom: 0, marginTop: 10 }}>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                block
+                                loading={loading}
+                                style={{ fontWeight: 600, height: 45 }}
+                            >
+                                {t('Acceder')}
+                            </Button>
+                        </Form.Item>
+                    </Form>
+                </Card>
+            </Flex>
+        );
+    }
+    return content;
 };
 
 export default LoginPage;
