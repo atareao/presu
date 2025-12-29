@@ -94,9 +94,12 @@ describe('UserDialog', () => {
         
         fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'newuser' } });
         fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'new@test.com' } });
-        // antd select is complex to test with fireEvent, this is a simplified approach
-        // In a real scenario, you might need a more complex setup to handle dropdowns
-        fireEvent.change(screen.getByLabelText('Rol'), { target: { value: 2 } }); 
+        
+        // Open the dropdown
+        fireEvent.mouseDown(screen.getByLabelText('Rol'));
+        // Select the 'USER' option
+        await screen.findByText('USER');
+        fireEvent.click(screen.getByText('USER'));
 
         fireEvent.click(screen.getByText('Guardar'));
 
