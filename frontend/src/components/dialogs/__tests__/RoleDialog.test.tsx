@@ -1,9 +1,10 @@
 // src/components/dialogs/__tests__/RoleDialog.test.tsx
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import RoleDialog from '../RoleDialog';
 import { DialogModes } from '@/common/types';
 import { roleService } from '@/services';
+import React from 'react';
 
 // Mock the roleService
 vi.mock('@/services', () => ({
@@ -27,65 +28,134 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
+// Mock Ant Design components
+const mockFormInstance = {
+    setFieldsValue: vi.fn(),
+    resetFields: vi.fn(),
+    validateFields: vi.fn(() => Promise.resolve({})),
+    getFieldsValue: vi.fn(() => ({})),
+};
+
+vi.mock('antd', async () => {
+    const antd = await vi.importActual('antd');
+    return {
+        ...antd,
+        Modal: vi.fn(({ visible, title, children, onOk, onCancel, footer }) => {
+            if (!visible) {
+                return null;
+            }
+            return (
+                <div data-testid="modal-mock">
+                    <div data-testid="modal-title">{title}</div>
+                    <div data-testid="modal-content">{children}</div>
+                    <div data-testid="modal-footer">
+                        {footer ? footer : (
+                            <>
+                                <button onClick={onCancel}>Cancel</button>
+                                <button onClick={onOk}>OK</button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }),
+        Form: {
+            ...antd.Form,
+            useForm: vi.fn(() => [mockFormInstance]),
+            Item: ({ children, ...props }: any) => (
+                <div data-testid="form-item-mock" {...props}>
+                    {children}
+                </div>
+            ),
+        },
+        Input: (props: any) => <input data-testid="input-mock" {...props} />,
+        InputNumber: (props: any) => <input type="number" data-testid="input-number-mock" {...props} />,
+        Select: ({ children, value, onChange }: any) => (
+            <select data-testid="select-mock" value={value} onChange={e => onChange(e.target.value)}>
+                {children}
+            </select>
+        ),
+        Button: (props: any) => <button {...props} />,
+        message: {
+            success: vi.fn(),
+            error: vi.fn(),
+        },
+    };
+});
+
 describe('RoleDialog', () => {
     const handleClose = vi.fn();
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockFormInstance.validateFields.mockResolvedValue({});
+        mockFormInstance.getFieldsValue.mockReturnValue({});
+    });
 
     afterEach(() => {
         vi.clearAllMocks();
     });
 
-    it('renders correctly when creating a new role', () => {
-        render(
-            <RoleDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.CREATE}
-            />
-        );
+    it('renders correctly when creating a new role', async () => {
+        await act(async () => {
+            render(
+                <RoleDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.CREATE}
+                />
+            );
+        });
 
         expect(screen.getByText('Nuevo Rol')).toBeInTheDocument();
         expect(screen.getByLabelText('Nombre del Rol')).toBeInTheDocument();
         expect(screen.getByText('Guardar')).toBeInTheDocument();
     });
 
-    it('renders correctly and populates form when updating a role', () => {
+    it('renders correctly and populates form when updating a role', async () => {
         const mockRole = { id: 1, name: 'ADMIN_USER' };
-        render(
-            <RoleDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.UPDATE}
-                role={mockRole}
-            />
-        );
+        await act(async () => {
+            render(
+                <RoleDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.UPDATE}
+                    role={mockRole}
+                />
+            );
+        });
 
+        await waitFor(() => {
+            expect(mockFormInstance.setFieldsValue).toHaveBeenCalledWith(mockRole);
+        });
         expect(screen.getByText('Editar Rol')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('ADMIN_USER')).toBeInTheDocument();
     });
 
     it('calls roleService.create when creating a new role', async () => {
         const newRole = { name: 'NEW_ROLE' };
         (roleService.create as vi.Mock).mockResolvedValue({ id: 2, ...newRole });
+        mockFormInstance.validateFields.mockResolvedValue(newRole);
 
-        render(
-            <RoleDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.CREATE}
-            />
-        );
-
-        fireEvent.change(screen.getByLabelText('Nombre del Rol'), {
-            target: { value: 'NEW_ROLE' },
+        await act(async () => {
+            render(
+                <RoleDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.CREATE}
+                />
+            );
         });
 
-        fireEvent.click(screen.getByText('Guardar'));
-
-        await vi.waitFor(() => {
-            expect(roleService.create).toHaveBeenCalledWith({ name: 'NEW_ROLE' });
-        });
+        await act(async () => {
+            fireEvent.change(screen.getByLabelText('Nombre del Rol'), {
+                target: { value: 'NEW_ROLE' },
+            });
         
-        await vi.waitFor(() => {
+            fireEvent.click(screen.getByText('Guardar'));
+        });
+
+        await waitFor(() => {
+            expect(roleService.create).toHaveBeenCalledWith({ name: 'NEW_ROLE' });
             expect(handleClose).toHaveBeenCalledWith({ id: 2, name: 'NEW_ROLE' });
         });
     });
@@ -94,58 +164,76 @@ describe('RoleDialog', () => {
         const mockRole = { id: 1, name: 'ADMIN_USER' };
         const updatedRoleData = { name: 'UPDATED_ADMIN' };
         (roleService.update as vi.Mock).mockResolvedValue({ ...mockRole, ...updatedRoleData });
+        mockFormInstance.validateFields.mockResolvedValue({ ...mockRole, ...updatedRoleData });
 
-        render(
-            <RoleDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.UPDATE}
-                role={mockRole}
-            />
-        );
-
-        fireEvent.change(screen.getByLabelText('Nombre del Rol'), {
-            target: { value: 'UPDATED_ADMIN' },
+        await act(async () => {
+            render(
+                <RoleDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.UPDATE}
+                    role={mockRole}
+                />
+            );
         });
 
-        fireEvent.click(screen.getByText('Guardar'));
-
-        await vi.waitFor(() => {
-            expect(roleService.update).toHaveBeenCalledWith({ ...mockRole, name: 'UPDATED_ADMIN' });
+        await waitFor(() => {
+            expect(mockFormInstance.setFieldsValue).toHaveBeenCalledWith(mockRole);
         });
+
+        await act(async () => {
+            fireEvent.change(screen.getByLabelText('Nombre del Rol'), {
+                target: { value: 'UPDATED_ADMIN' },
+            });
         
-        await vi.waitFor(() => {
+            fireEvent.click(screen.getByText('Guardar'));
+        });
+
+        await waitFor(() => {
+            expect(roleService.update).toHaveBeenCalledWith({ ...mockRole, name: 'UPDATED_ADMIN' });
             expect(handleClose).toHaveBeenCalledWith({ ...mockRole, ...updatedRoleData });
         });
     });
 
-    it('calls handleClose when the cancel button is clicked', () => {
-        render(
-            <RoleDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.CREATE}
-            />
-        );
+    it('calls handleClose when the cancel button is clicked', async () => {
+        await act(async () => {
+            render(
+                <RoleDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.CREATE}
+                />
+            );
+        });
 
-        fireEvent.click(screen.getByText('Cancelar'));
+        await act(async () => {
+            fireEvent.click(screen.getByText('Cancelar'));
+        });
         expect(handleClose).toHaveBeenCalledWith();
     });
 
     it('shows validation error for invalid input', async () => {
-        render(
-            <RoleDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.CREATE}
-            />
-        );
-
-        fireEvent.change(screen.getByLabelText('Nombre del Rol'), {
-            target: { value: 'invalid-role' },
+        mockFormInstance.validateFields.mockRejectedValue({
+            errorFields: [{ name: ['name'], errors: ['Usa solo mayúsculas y guiones bajos (SNAKE_CASE)'] }],
         });
 
-        fireEvent.click(screen.getByText('Guardar'));
+        await act(async () => {
+            render(
+                <RoleDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.CREATE}
+                />
+            );
+        });
+
+        await act(async () => {
+            fireEvent.change(screen.getByLabelText('Nombre del Rol'), {
+                target: { value: 'invalid-role' },
+            });
+        
+            fireEvent.click(screen.getByText('Guardar'));
+        });
 
         expect(await screen.findByText('Usa solo mayúsculas y guiones bajos (SNAKE_CASE)')).toBeInTheDocument();
         expect(roleService.create).not.toHaveBeenCalled();

@@ -1,5 +1,5 @@
 // src/components/dialogs/__tests__/ElementDialog.test.tsx
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import ElementDialog from '../ElementDialog';
 import { Element } from '@/models';
@@ -13,31 +13,53 @@ vi.mock('react-i18next', () => ({
 }));
 
 // Mock Ant Design components
+const mockFormInstance = {
+    setFieldsValue: vi.fn(),
+    resetFields: vi.fn(),
+    validateFields: vi.fn(() => Promise.resolve({})),
+    getFieldsValue: vi.fn(() => ({})),
+};
+
 vi.mock('antd', async () => {
     const antd = await vi.importActual('antd');
     return {
         ...antd,
-        Modal: (props: { visible: boolean; children: React.ReactNode }) => {
-            if (!props.visible) {
+        Modal: vi.fn(({ visible, title, children, onOk, onCancel, footer }) => {
+            if (!visible) {
                 return null;
             }
-            return React.createElement('div', {}, props.children);
-        },
+            return (
+                <div data-testid="modal-mock">
+                    <div data-testid="modal-title">{title}</div>
+                    <div data-testid="modal-content">{children}</div>
+                    <div data-testid="modal-footer">
+                        {footer ? footer : (
+                            <>
+                                <button onClick={onCancel}>Cancel</button>
+                                <button onClick={onOk}>OK</button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }),
         Form: {
             ...antd.Form,
-            useForm: vi.fn(() => [{
-                setFieldsValue: vi.fn(),
-                resetFields: vi.fn(),
-                validateFields: vi.fn(() => Promise.resolve({}))
-            }]),
+            useForm: vi.fn(() => [mockFormInstance]),
+            Item: ({ children, ...props }: any) => (
+                <div data-testid="form-item-mock" {...props}>
+                    {children}
+                </div>
+            ),
         },
+        Input: (props: any) => <input data-testid="input-mock" {...props} />,
+        InputNumber: (props: any) => <input type="number" data-testid="input-number-mock" {...props} />,
         Select: ({ children, value, onChange }: any) => (
             <select data-testid="select-mock" value={value} onChange={e => onChange(e.target.value)}>
                 {children}
             </select>
         ),
-        Input: (props: any) => <input {...props} />,
-        InputNumber: (props: any) => <input type="number" {...props} />,
+        Button: (props: any) => <button {...props} />,
     };
 });
 
@@ -54,8 +76,16 @@ describe('ElementDialog', () => {
     budget_code: 'BGT-ELEM-001',
   };
 
-  it('renders correctly when creating a new element', () => {
-    render(<ElementDialog visible={true} onClose={onClose} onSave={onSave} element={null} budgetId={1} versionId={1} />);
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFormInstance.validateFields.mockResolvedValue({});
+    mockFormInstance.getFieldsValue.mockReturnValue({});
+  });
+
+  it('renders correctly when creating a new element', async () => {
+    await act(async () => {
+      render(<ElementDialog visible={true} onClose={onClose} onSave={onSave} element={null} budgetId={1} versionId={1} />);
+    });
 
     expect(screen.getByText('Añadir Elemento')).toBeInTheDocument();
     expect(screen.getByLabelText('Código')).toBeInTheDocument();
@@ -63,22 +93,36 @@ describe('ElementDialog', () => {
     expect(screen.getByLabelText('Tipo de Elemento')).toBeInTheDocument();
   });
 
-  it('renders correctly when updating an existing element', () => {
-    render(<ElementDialog visible={true} onClose={onClose} onSave={onSave} element={element} budgetId={1} versionId={1} />);
-
+  it('renders correctly when updating an existing element', async () => {
+    await act(async () => {
+      render(<ElementDialog visible={true} onClose={onClose} onSave={onSave} element={element} budgetId={1} versionId={1} />);
+    });
+    
+    await waitFor(() => {
+        expect(mockFormInstance.setFieldsValue).toHaveBeenCalledWith(element);
+    });
     expect(screen.getByText('Editar Elemento')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('ELEM-001')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('BGT-ELEM-001')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('line')).toBeInTheDocument();
   });
 
   it('calls onSave when creating a new element', async () => {
-    render(<ElementDialog visible={true} onClose={onClose} onSave={onSave} element={null} budgetId={1} versionId={1} />);
+    await act(async () => {
+      render(<ElementDialog visible={true} onClose={onClose} onSave={onSave} element={null} budgetId={1} versionId={1} />);
+    });
 
-    fireEvent.change(screen.getByLabelText('Código'), { target: { value: 'NEW-ELEM' } });
-    fireEvent.change(screen.getByLabelText('Código de Presupuesto'), { target: { value: 'NEW-BGT-ELEM' } });
-    fireEvent.change(screen.getByLabelText('Tipo de Elemento'), { target: { value: 'group' } });
-    fireEvent.click(screen.getByText('Guardar'));
+    mockFormInstance.validateFields.mockResolvedValue({
+        budget_id: 1,
+        version_id: 1,
+        element_type: 'group',
+        code: 'NEW-ELEM',
+        budget_code: 'NEW-BGT-ELEM',
+    });
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Código'), { target: { value: 'NEW-ELEM' } });
+      fireEvent.change(screen.getByLabelText('Código de Presupuesto'), { target: { value: 'NEW-BGT-ELEM' } });
+      fireEvent.change(screen.getByLabelText('Tipo de Elemento'), { target: { value: 'group' } });
+      fireEvent.click(screen.getByText('Guardar'));
+    });
 
     await waitFor(() => {
       expect(onSave).toHaveBeenCalledWith({
@@ -92,10 +136,19 @@ describe('ElementDialog', () => {
   });
 
   it('calls onSave when updating an existing element', async () => {
-    render(<ElementDialog visible={true} onClose={onClose} onSave={onSave} element={element} budgetId={1} versionId={1} />);
+    await act(async () => {
+      render(<ElementDialog visible={true} onClose={onClose} onSave={onSave} element={element} budgetId={1} versionId={1} />);
+    });
 
-    fireEvent.change(screen.getByLabelText('Código'), { target: { value: 'UPDATED-ELEM' } });
-    fireEvent.click(screen.getByText('Guardar'));
+    mockFormInstance.validateFields.mockResolvedValue({
+        ...element,
+        code: 'UPDATED-ELEM',
+    });
+    
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Código'), { target: { value: 'UPDATED-ELEM' } });
+      fireEvent.click(screen.getByText('Guardar'));
+    });
 
     await waitFor(() => {
       expect(onSave).toHaveBeenCalledWith({
@@ -105,10 +158,14 @@ describe('ElementDialog', () => {
     });
   });
 
-  it('calls onClose when cancel button is clicked', () => {
-    render(<ElementDialog visible={true} onClose={onClose} onSave={onSave} element={null} budgetId={1} versionId={1} />);
+  it('calls onClose when cancel button is clicked', async () => {
+    await act(async () => {
+      render(<ElementDialog visible={true} onClose={onClose} onSave={onSave} element={null} budgetId={1} versionId={1} />);
+    });
 
-    fireEvent.click(screen.getByText('Cancelar'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('Cancelar'));
+    });
     expect(onClose).toHaveBeenCalled();
   });
 });

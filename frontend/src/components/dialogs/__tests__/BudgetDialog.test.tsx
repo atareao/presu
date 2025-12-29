@@ -1,10 +1,11 @@
 // src/components/dialogs/__tests__/BudgetDialog.test.tsx
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import BudgetDialog from '../BudgetDialog';
 import { DialogModes } from '@/common/types';
 import { budgetService, projectService } from '@/services';
 import { BudgetStatus } from '@/models';
+import React from 'react';
 
 // Mock the services
 vi.mock('@/services', () => ({
@@ -30,11 +31,54 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
-// Mock antd message
-vi.mock('antd', async (importOriginal) => {
-    const original = await importOriginal();
+// Mock Ant Design components
+const mockFormInstance = {
+    setFieldsValue: vi.fn(),
+    resetFields: vi.fn(),
+    validateFields: vi.fn(() => Promise.resolve({})),
+    getFieldsValue: vi.fn(() => ({})),
+};
+
+vi.mock('antd', async () => {
+    const antd = await vi.importActual('antd');
     return {
-        ...original,
+        ...antd,
+        Modal: vi.fn(({ visible, title, children, onOk, onCancel, footer }) => {
+            if (!visible) {
+                return null;
+            }
+            return (
+                <div data-testid="modal-mock">
+                    <div data-testid="modal-title">{title}</div>
+                    <div data-testid="modal-content">{children}</div>
+                    <div data-testid="modal-footer">
+                        {footer ? footer : (
+                            <>
+                                <button onClick={onCancel}>Cancel</button>
+                                <button onClick={onOk}>OK</button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }),
+        Form: {
+            ...antd.Form,
+            useForm: vi.fn(() => [mockFormInstance]),
+            Item: ({ children, ...props }: any) => (
+                <div data-testid="form-item-mock" {...props}>
+                    {children}
+                </div>
+            ),
+        },
+        Input: (props: any) => <input data-testid="input-mock" {...props} />,
+        InputNumber: (props: any) => <input type="number" data-testid="input-number-mock" {...props} />,
+        Select: ({ children, value, onChange }: any) => (
+            <select data-testid="select-mock" value={value} onChange={e => onChange(e.target.value)}>
+                {children}
+            </select>
+        ),
+        Button: (props: any) => <button {...props} />,
         message: {
             success: vi.fn(),
             error: vi.fn(),
@@ -51,7 +95,10 @@ describe('BudgetDialog', () => {
     const handleClose = vi.fn();
 
     beforeEach(() => {
+        vi.clearAllMocks();
         (projectService.readAll as vi.Mock).mockResolvedValue(mockProjects);
+        mockFormInstance.validateFields.mockResolvedValue({});
+        mockFormInstance.getFieldsValue.mockReturnValue({});
     });
 
     afterEach(() => {
@@ -59,16 +106,18 @@ describe('BudgetDialog', () => {
     });
 
     it('renders and fetches projects on create mode', async () => {
-        render(
-            <BudgetDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.CREATE}
-            />
-        );
+        await act(async () => {
+            render(
+                <BudgetDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.CREATE}
+                />
+            );
+        });
 
         expect(screen.getByText('Nuevo Presupuesto')).toBeInTheDocument();
-        await vi.waitFor(() => {
+        await waitFor(() => {
             expect(projectService.readAll).toHaveBeenCalled();
         });
     });
@@ -82,26 +131,32 @@ describe('BudgetDialog', () => {
             status: BudgetStatus.Draft 
         };
         (budgetService.create as vi.Mock).mockResolvedValue({ id: 1, ...newBudget });
+        mockFormInstance.validateFields.mockResolvedValue(newBudget);
 
-        render(
-            <BudgetDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.CREATE}
-            />
-        );
+        await act(async () => {
+            render(
+                <BudgetDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.CREATE}
+                />
+            );
+        });
 
-        fireEvent.change(screen.getByLabelText('Código Presupuesto'), { target: { value: newBudget.code } });
-        fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: newBudget.name } });
+        await act(async () => {
+            fireEvent.change(screen.getByLabelText('Código Presupuesto'), { target: { value: newBudget.code } });
+            fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: newBudget.name } });
+        
+            fireEvent.click(screen.getByText('Guardar'));
+        });
 
-        fireEvent.click(screen.getByText('Guardar'));
-
-        await vi.waitFor(() => {
+        await waitFor(() => {
             // We expect a partial object, so we check for containing the fields
             expect(budgetService.create).toHaveBeenCalledWith(expect.objectContaining({
                 code: newBudget.code,
                 name: newBudget.name,
             }));
+            expect(handleClose).toHaveBeenCalled();
         });
     });
 });

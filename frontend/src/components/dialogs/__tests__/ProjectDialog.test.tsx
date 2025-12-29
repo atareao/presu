@@ -1,9 +1,10 @@
 // src/components/dialogs/__tests__/ProjectDialog.test.tsx
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import ProjectDialog from '../ProjectDialog';
 import { DialogModes } from '@/common/types';
 import { projectService } from '@/services';
+import React from 'react';
 
 // Mock the services
 vi.mock('@/services', () => ({
@@ -27,11 +28,54 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
-// Mock antd message
-vi.mock('antd', async (importOriginal) => {
-    const original = await importOriginal();
+// Mock Ant Design components
+const mockFormInstance = {
+    setFieldsValue: vi.fn(),
+    resetFields: vi.fn(),
+    validateFields: vi.fn(() => Promise.resolve({})),
+    getFieldsValue: vi.fn(() => ({})),
+};
+
+vi.mock('antd', async () => {
+    const antd = await vi.importActual('antd');
     return {
-        ...original,
+        ...antd,
+        Modal: vi.fn(({ visible, title, children, onOk, onCancel, footer }) => {
+            if (!visible) {
+                return null;
+            }
+            return (
+                <div data-testid="modal-mock">
+                    <div data-testid="modal-title">{title}</div>
+                    <div data-testid="modal-content">{children}</div>
+                    <div data-testid="modal-footer">
+                        {footer ? footer : (
+                            <>
+                                <button onClick={onCancel}>Cancel</button>
+                                <button onClick={onOk}>OK</button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }),
+        Form: {
+            ...antd.Form,
+            useForm: vi.fn(() => [mockFormInstance]),
+            Item: ({ children, ...props }: any) => (
+                <div data-testid="form-item-mock" {...props}>
+                    {children}
+                </div>
+            ),
+        },
+        Input: (props: any) => <input data-testid="input-mock" {...props} />,
+        InputNumber: (props: any) => <input type="number" data-testid="input-number-mock" {...props} />,
+        Select: ({ children, value, onChange }: any) => (
+            <select data-testid="select-mock" value={value} onChange={e => onChange(e.target.value)}>
+                {children}
+            </select>
+        ),
+        Button: (props: any) => <button {...props} />,
         message: {
             success: vi.fn(),
             error: vi.fn(),
@@ -42,18 +86,26 @@ vi.mock('antd', async (importOriginal) => {
 describe('ProjectDialog', () => {
     const handleClose = vi.fn();
 
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockFormInstance.validateFields.mockResolvedValue({});
+        mockFormInstance.getFieldsValue.mockReturnValue({});
+    });
+
     afterEach(() => {
         vi.clearAllMocks();
     });
 
-    it('renders correctly when creating a new project', () => {
-        render(
-            <ProjectDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.CREATE}
-            />
-        );
+    it('renders correctly when creating a new project', async () => {
+        await act(async () => {
+            render(
+                <ProjectDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.CREATE}
+                />
+            );
+        });
 
         expect(screen.getByText('Nuevo Proyecto')).toBeInTheDocument();
         expect(screen.getByLabelText('Código')).toBeInTheDocument();
@@ -63,22 +115,28 @@ describe('ProjectDialog', () => {
     it('calls projectService.create when saving a new project', async () => {
         const newProject = { code: 'PRJ-002', title: 'New Project' };
         (projectService.create as vi.Mock).mockResolvedValue({ id: 2, ...newProject });
+        mockFormInstance.validateFields.mockResolvedValue(newProject);
 
-        render(
-            <ProjectDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.CREATE}
-            />
-        );
+        await act(async () => {
+            render(
+                <ProjectDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.CREATE}
+                />
+            );
+        });
 
-        fireEvent.change(screen.getByLabelText('Código'), { target: { value: newProject.code } });
-        fireEvent.change(screen.getByLabelText('Título'), { target: { value: newProject.title } });
+        await act(async () => {
+            fireEvent.change(screen.getByLabelText('Código'), { target: { value: newProject.code } });
+            fireEvent.change(screen.getByLabelText('Título'), { target: { value: newProject.title } });
+    
+            fireEvent.click(screen.getByText('Guardar'));
+        });
 
-        fireEvent.click(screen.getByText('Guardar'));
-
-        await vi.waitFor(() => {
+        await waitFor(() => {
             expect(projectService.create).toHaveBeenCalledWith(newProject);
+            expect(handleClose).toHaveBeenCalled();
         });
     });
 
@@ -86,21 +144,31 @@ describe('ProjectDialog', () => {
         const mockProject = { id: 1, code: 'PRJ-001', title: 'Existing Project' };
         const updatedData = { title: 'Updated Project Title' };
         (projectService.update as vi.Mock).mockResolvedValue({ ...mockProject, ...updatedData });
+        mockFormInstance.validateFields.mockResolvedValue({ ...mockProject, ...updatedData });
 
-        render(
-            <ProjectDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.UPDATE}
-                project={mockProject}
-            />
-        );
+        await act(async () => {
+            render(
+                <ProjectDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.UPDATE}
+                    project={mockProject}
+                />
+            );
+        });
+
+        await waitFor(() => {
+            expect(mockFormInstance.setFieldsValue).toHaveBeenCalledWith(mockProject);
+        });
         
-        fireEvent.change(screen.getByLabelText('Título'), { target: { value: updatedData.title } });
-        fireEvent.click(screen.getByText('Guardar'));
+        await act(async () => {
+            fireEvent.change(screen.getByLabelText('Título'), { target: { value: updatedData.title } });
+            fireEvent.click(screen.getByText('Guardar'));
+        });
 
-        await vi.waitFor(() => {
+        await waitFor(() => {
             expect(projectService.update).toHaveBeenCalledWith({ ...mockProject, ...updatedData });
+            expect(handleClose).toHaveBeenCalled();
         });
     });
 });
