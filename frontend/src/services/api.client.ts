@@ -17,8 +17,8 @@ export const apiClient = {
         body: JSON.stringify(data)
     }).then(handleResponse),
 
-    put: (endpoint: string, data: any) => fetch(`${BASE_URL}${endpoint}`, {
-        method: 'PUT',
+    patch: (endpoint: string, data: any) => fetch(`${BASE_URL}${endpoint}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     }).then(handleResponse),

@@ -4,11 +4,11 @@ import type { Project } from "@/models";
 const ENDPOINT = "/api/v1/projects";
 
 export const projectService = {
-    getAll: (): Promise<Project[]> => {
+    readAll: (): Promise<Project[]> => {
         return apiClient.get(ENDPOINT);
     },
 
-    getById: (id: number): Promise<Project> => {
+    readById: (id: number): Promise<Project> => {
         return apiClient.get(`${ENDPOINT}/${id}`);
     },
 
@@ -16,8 +16,8 @@ export const projectService = {
         return apiClient.post(ENDPOINT, project);
     },
 
-    update: (id: number, project: Partial<Project>): Promise<Project> => {
-        return apiClient.put(`${ENDPOINT}/${id}`, project);
+    update: (project: Partial<Project>): Promise<Project> => {
+        return apiClient.patch(ENDPOINT, project);
     },
 
     delete: (id: number): Promise<Project> => {
