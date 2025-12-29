@@ -17,11 +17,14 @@ export const apiClient = {
         body: JSON.stringify(data)
     }).then(handleResponse),
 
-    patch: (endpoint: string, data: any) => fetch(`${BASE_URL}${endpoint}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    }).then(handleResponse),
+    patch: (endpoint: string, data: any) => {
+        const url = data.id ? `${BASE_URL}${endpoint}/${data.id}` : `${BASE_URL}${endpoint}`;
+        return fetch(url, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(handleResponse);
+    },
 
     delete: (endpoint: string) => fetch(`${BASE_URL}${endpoint}`, {
         method: 'DELETE'

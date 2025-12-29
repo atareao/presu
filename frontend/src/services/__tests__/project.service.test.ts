@@ -1,14 +1,14 @@
-// src/services/__tests__/project.service.test.ts
 import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { projectService } from '../project.service';
 import { BASE_URL } from '@/constants';
+import type { Project } from '@/models';
 
 // 1. Configuramos el servidor ficticio (Mock)
 const server = setupServer(
     http.post(`${BASE_URL}/api/v1/projects`, async ({ request }) => {
-        const newProject = await request.json();
+        const newProject = (await request.json()) as Partial<Project>;
         // Simulamos la respuesta de Rust (con el ID ya asignado)
         return HttpResponse.json({ id: 1, ...newProject }, { status: 201 });
     })
