@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Modal, Form, Input, Switch, Select, message } from 'antd'; 
 import { DialogModes, type DialogMode } from "@/common/types";
 import type { User, Role } from "@/models";
-import { BASE_URL } from "@/constants";
+import { roleService, userService } from "@/services";
 
 interface Props {
     dialogOpen: boolean;
@@ -12,7 +12,7 @@ interface Props {
     user?: User;
 }
 
-const getInitialUser = (): User => ({
+const getInitialUser = (): Partial<User> => ({
     username: "",
     email: "",
     hashed_password: "",
@@ -31,8 +31,7 @@ const UserDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, user
         const fetchRoles = async () => {
             setLoadingRoles(true);
             try {
-                const response = await fetch(`${BASE_URL}/api/v1/roles`); 
-                const data = await response.json();
+                const data = await roleService.readAll(); 
                 setRoles(data);
             } catch (error) {
                 console.error("Error fetching roles:", error);
@@ -47,18 +46,25 @@ const UserDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, user
 
     useEffect(() => {
         if (dialogOpen) {
-            if ((dialogMode === DialogModes.CREATE || dialogMode === DialogModes.NONE) && user) {
+            if (user) {
                 form.setFieldsValue(user);
             } else {
                 form.setFieldsValue(getInitialUser());
             }
         }
-    }, [dialogOpen, dialogMode, user, form]);
+    }, [dialogOpen, user, form]);
 
     const onOk = async () => {
         try {
             const values = await form.validateFields();
-            handleClose(values);
+            let result: User | undefined;
+
+            if (dialogMode === DialogModes.CREATE) {
+                result = await userService.create(values);
+            } else if (dialogMode === DialogModes.UPDATE && user) {
+                result = await userService.update({ ...user, ...values });
+            }
+            handleClose(result);
         } catch (error) {
             console.error("Validation failed:", error);
         }

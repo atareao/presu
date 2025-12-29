@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Modal, Form, Input } from 'antd'; 
 import { DialogModes, type DialogMode } from "@/common/types";
 import type { Role } from "@/models";
+import { roleService } from "@/services";
 
 interface Props {
     dialogOpen: boolean;
@@ -11,10 +12,8 @@ interface Props {
     role?: Role;
 }
 
-const getInitialRole = (): Role => ({
+const getInitialRole = (): Partial<Role> => ({
     name: "",
-    created_at: new Date(),
-    updated_at: new Date()
 });
 
 const RoleDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, role }) => {
@@ -23,20 +22,26 @@ const RoleDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, role
 
     useEffect(() => {
         if (dialogOpen) {
-            // Si estamos editando o visualizando y tenemos el objeto role
-            if ((dialogMode === DialogModes.UPDATE || dialogMode === DialogModes.READ) && role) {
+            if (role) {
                 form.setFieldsValue(role);
             } else {
                 form.setFieldsValue(getInitialRole());
             }
         }
-    }, [dialogOpen, dialogMode, role, form]);
+    }, [dialogOpen, role, form]);
 
     const onOk = async () => {
         try {
             const values = await form.validateFields();
-            // Retornamos los valores combinados con el objeto original para no perder el id
-            handleClose({ ...role, ...values });
+            let result: Role | undefined;
+
+            if (dialogMode === DialogModes.CREATE) {
+                result = await roleService.create(values);
+            } else if (dialogMode === DialogModes.UPDATE && role) {
+                result = await roleService.update({ ...role, ...values });
+            }
+            
+            handleClose(result);
         } catch (error) {
             console.error("Validation failed:", error);
         }
