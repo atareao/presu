@@ -13,7 +13,6 @@ Object.defineProperty(window, 'matchMedia', {
         addListener: vi.fn(), // deprecated
         removeListener: vi.fn(), // deprecated
         addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
         dispatchEvent: vi.fn(),
     })),
 });
@@ -25,7 +24,6 @@ class ResizeObserver {
     disconnect() {}
 }
 window.ResizeObserver = ResizeObserver;
-
 
 // 1. Definimos manejadores (handlers) globales por defecto
 // Puedes añadir aquí los que se usen en casi todos los tests (ej. auth, roles)

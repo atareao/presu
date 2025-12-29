@@ -63,4 +63,7 @@ export default defineConfig({
             'import.meta.env.VITE_BASE_URL': JSON.stringify('http://localhost:3000'),
         },
     },
+    optimizeDeps: {
+        exclude: ['react-router-dom'],
+    },
 });
