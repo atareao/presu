@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Modal, Form, Input, Select, InputNumber, message } from 'antd'; 
 import { DialogModes, type DialogMode } from "@/common/types";
 import type { Budget, Project } from "@/models";
-import { BudgetStatus } from "@/models"
-import { BASE_URL } from "@/constants";
+import { BudgetStatus } from "@/models";
+import { budgetService, projectService } from "@/services";
 
 interface Props {
     dialogOpen: boolean;
@@ -28,15 +28,15 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
     const [form] = Form.useForm();
 
     const [projects, setProjects] = useState<Project[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
     const [loadingProjects, setLoadingProjects] = useState<boolean>(false);
 
-    // Carga de proyectos para el Select, similar a la carga de roles en User
+    // Carga de proyectos usando el servicio
     useEffect(() => {
         const fetchProjects = async () => {
             setLoadingProjects(true);
             try {
-                const response = await fetch(`${BASE_URL}/api/v1/projects`); 
-                const data = await response.json();
+                const data = await projectService.readAll();
                 setProjects(data);
             } catch (error) {
                 console.error("Error fetching projects:", error);
@@ -46,9 +46,12 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
             }
         };
 
-        if (dialogOpen) fetchProjects();
+        if (dialogOpen) {
+            fetchProjects();
+        }
     }, [dialogOpen, t]);
 
+    // Sincronización del formulario
     useEffect(() => {
         if (dialogOpen) {
             if ((dialogMode === DialogModes.UPDATE || dialogMode === DialogModes.READ) && budget) {
@@ -60,11 +63,31 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
     }, [dialogOpen, dialogMode, budget, form]);
 
     const onOk = async () => {
+        if (dialogMode === DialogModes.READ) {
+            handleClose();
+            return;
+        }
+
         try {
             const values = await form.validateFields();
-            handleClose({ ...budget, ...values });
+            setLoading(true);
+            
+            let result: Budget;
+
+            if (dialogMode === DialogModes.UPDATE && budget?.id) {
+                result = await budgetService.update({ ...budget, ...values });
+                message.success(t("Presupuesto actualizado con éxito"));
+            } else {
+                result = await budgetService.create(values);
+                message.success(t("Presupuesto creado con éxito"));
+            }
+            
+            handleClose(result);
         } catch (error) {
-            console.error("Validation failed:", error);
+            console.error("Error saving budget:", error);
+            message.error(t("Error al guardar el presupuesto"));
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -85,9 +108,12 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
             open={dialogOpen}
             onOk={onOk}
             onCancel={() => handleClose()}
+            confirmLoading={loading}
             okText={t("Guardar")}
             cancelText={t("Cancelar")}
-            okButtonProps={{ style: { display: dialogMode === DialogModes.READ ? 'none' : 'inline-block' } }}
+            okButtonProps={{ 
+                style: { display: dialogMode === DialogModes.READ ? 'none' : 'inline-block' } 
+            }}
         >
             <Form
                 form={form}
@@ -95,7 +121,7 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
                 initialValues={getInitialBudget()}
                 name="budget_form"
                 preserve={false}
-                disabled={dialogMode === DialogModes.READ}
+                disabled={dialogMode === DialogModes.READ || loading}
             >
                 {/* Proyecto Relacionado */}
                 <Form.Item
@@ -106,13 +132,11 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
                     <Select 
                         loading={loadingProjects}
                         placeholder={t("Selecciona un proyecto")}
-                    >
-                        {projects.map((p) => (
-                            <Select.Option key={p.id} value={p.id}>
-                                {p.code} - {p.title}
-                            </Select.Option>
-                        ))}
-                    </Select>
+                        options={projects.map(p => ({
+                            label: `${p.code} - ${p.title}`,
+                            value: p.id
+                        }))}
+                    />
                 </Form.Item>
 
                 {/* Código del Presupuesto */}
@@ -149,13 +173,12 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
                         name="status"
                         style={{ flex: 1 }}
                     >
-                        <Select>
-                            {Object.values(BudgetStatus).map((status) => (
-                                <Select.Option key={status} value={status}>
-                                    {t(status.charAt(0).toUpperCase() + status.slice(1))}
-                                </Select.Option>
-                            ))}
-                        </Select>
+                        <Select
+                            options={Object.values(BudgetStatus).map((status) => ({
+                                label: t(status.charAt(0).toUpperCase() + status.slice(1)),
+                                value: status
+                            }))}
+                        />
                     </Form.Item>
                 </div>
             </Form>

@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Form, Input } from 'antd'; 
+import { Modal, Form, Input, message } from 'antd'; 
 import { DialogModes, type DialogMode } from "@/common/types";
 import type { Project } from "@/models";
+import { projectService } from "@/services";
 
 interface Props {
     dialogOpen: boolean;
@@ -21,10 +22,10 @@ const getInitialProject = (): Project => ({
 const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, project }) => {
     const { t } = useTranslation();
     const [form] = Form.useForm();
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (dialogOpen) {
-            // Sigue la misma lógica de User: si hay datos (CREATE/NONE con objeto) o inicializa
             if ((dialogMode === DialogModes.UPDATE || dialogMode === DialogModes.READ) && project) {
                 form.setFieldsValue(project);
             } else {
@@ -34,11 +35,33 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
     }, [dialogOpen, dialogMode, project, form]);
 
     const onOk = async () => {
+        if (dialogMode === DialogModes.READ) {
+            handleClose();
+            return;
+        }
+
         try {
             const values = await form.validateFields();
-            handleClose({ ...project, ...values });
+            setLoading(true);
+            
+            let result: Project;
+
+            if (dialogMode === DialogModes.UPDATE && project?.id) {
+                // Llamada al servicio para actualizar
+                result = await projectService.update({ ...project, ...values });
+                message.success(t("Proyecto actualizado con éxito"));
+            } else {
+                // Llamada al servicio para crear
+                result = await projectService.create(values);
+                message.success(t("Proyecto creado con éxito"));
+            }
+            
+            handleClose(result);
         } catch (error) {
-            console.error("Validation failed:", error);
+            console.error("Operation failed:", error);
+            message.error(t("Error al procesar la solicitud"));
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -59,10 +82,12 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
             open={dialogOpen}
             onOk={onOk}
             onCancel={() => handleClose()}
+            confirmLoading={loading}
             okText={t("Guardar")}
             cancelText={t("Cancelar")}
-            // Deshabilitamos el botón OK si solo estamos viendo
-            okButtonProps={{ style: { display: dialogMode === DialogModes.READ ? 'none' : 'inline-block' } }}
+            okButtonProps={{ 
+                style: { display: dialogMode === DialogModes.READ ? 'none' : 'inline-block' } 
+            }}
         >
             <Form
                 form={form}
@@ -70,7 +95,7 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
                 initialValues={getInitialProject()}
                 name="project_form"
                 preserve={false}
-                disabled={dialogMode === DialogModes.READ} // Deshabilita campos en modo lectura
+                disabled={dialogMode === DialogModes.READ || loading}
             >
                 <Form.Item
                     label={t("Código")}

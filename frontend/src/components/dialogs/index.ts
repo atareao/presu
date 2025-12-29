@@ -1,1 +1,1 @@
-export * from "@/components/dialogs/UserDialog";
+export * from "./UserDialog";
