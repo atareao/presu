@@ -89,9 +89,10 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
             onOk={onOk}
             onCancel={() => handleClose()}
             confirmLoading={loading}
-            okText={DialogModes.DELETE ? t("Eliminar") : t("Guardar")}
+            okText={dialogMode === DialogModes.DELETE ? t("Eliminar") : t("Guardar")}
             cancelText={t("Cancelar")}
             okButtonProps={{
+                danger: dialogMode === DialogModes.DELETE,
                 style: { display: dialogMode === DialogModes.READ ? 'none' : 'inline-block' }
             }}
         >
