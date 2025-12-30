@@ -12,7 +12,6 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-// Mock Ant Design components
 const mockFormInstance = {
     setFieldsValue: vi.fn(),
     resetFields: vi.fn(),
@@ -20,16 +19,7 @@ const mockFormInstance = {
     getFieldsValue: vi.fn(() => ({})),
 };
 
-vi.mock('antd', async () => {
-    const antd = await vi.importActual('antd');
-    return {
-        ...antd,
-        Form: {
-            ...antd.Form,
-            useForm: vi.fn(() => [mockFormInstance]),
-        },
-    };
-});
+// Ant Design Form.useForm is globally mocked in setup.ts
 
 describe('ElementDialog', () => {
   const onSave = vi.fn();

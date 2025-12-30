@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AdminHomePage from '../AdminHomePage';
 import * as utils from '@/common/utils';
 import React from 'react';
-import { MemoryRouter, useNavigate } from 'react-router-dom';
 
 // Mock the utils module
 vi.mock('@/common/utils', () => ({
@@ -19,11 +18,8 @@ vi.mock('react-i18next', () => ({
 }));
 
 describe('AdminHomePage', () => {
-    const mockUseNavigate = vi.fn();
-
     beforeEach(() => {
         vi.clearAllMocks();
-        (useNavigate as vi.Mock).mockReturnValue(mockUseNavigate);
     });
 
     it('fetches and displays dashboard data', async () => {
@@ -33,9 +29,7 @@ describe('AdminHomePage', () => {
 
         await act(async () => {
             render(
-                <MemoryRouter>
-                    <AdminHomePage />
-                </MemoryRouter>
+                <AdminHomePage />
             );
         });
 
@@ -59,9 +53,7 @@ describe('AdminHomePage', () => {
 
         await act(async () => {
             render(
-                <MemoryRouter>
-                    <AdminHomePage />
-                </MemoryRouter>
+                <AdminHomePage />
             );
         });
 

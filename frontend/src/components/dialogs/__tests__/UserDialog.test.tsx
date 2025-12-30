@@ -30,7 +30,6 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
-// Mock Ant Design components
 const mockFormInstance = {
     setFieldsValue: vi.fn(),
     resetFields: vi.fn(),
@@ -38,20 +37,7 @@ const mockFormInstance = {
     getFieldsValue: vi.fn(() => ({})),
 };
 
-vi.mock('antd', async (importOriginal) => {
-    const antd = await importOriginal();
-    return {
-        ...antd,
-        Form: {
-            ...antd.Form,
-            useForm: vi.fn(() => [mockFormInstance]),
-        },
-        message: {
-            success: vi.fn(),
-            error: vi.fn(),
-        },
-    };
-});
+// Ant Design Form.useForm and message are globally mocked in setup.ts
 
 const mockRoles = [
     { id: 1, name: 'ADMIN' },

@@ -13,6 +13,9 @@
         "test:run": "vitest run",
         "test:coverage": "vitest run --coverage"
     },
+    "vitest": {
+        "testMatch": ["**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
+    },
     "dependencies": {
         "@ant-design/icons": "^6.1.0",
         "@dnd-kit/core": "^6.3.1",

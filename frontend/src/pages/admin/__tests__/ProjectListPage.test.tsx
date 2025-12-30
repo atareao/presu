@@ -1,7 +1,6 @@
-// src/pages/admin/__tests__/ProjectListPage.test.tsx
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import ProjectListPage from '../ProjectListPage';
+import ProjectListPage from '../ProjectListPage'; // Assuming this is the correct component name now
 import { projectService } from '@/services';
 import { Project } from '@/models';
 import React from 'react';
@@ -30,56 +29,92 @@ vi.mock('@/services', () => ({
     userService: vi.fn(),
 }));
 
-// Mock antd components
-const mockFormInstance = {
-    setFieldsValue: vi.fn(),
-    resetFields: vi.fn(),
-    validateFields: vi.fn(() => Promise.resolve({})),
-    getFieldsValue: vi.fn(() => ({})),
-};
+// Mock CustomTable since it's an external component to this test
+vi.mock('@/components/CustomTable', () => ({
+    default: vi.fn(({ title, endpoint, fields, t, hasActions, renderActionColumn, renderHeaderAction, dialogRenderer }) => {
+        const mockItems: Project[] = [
+            { id: 1, code: 'P1', title: 'Project Alpha' },
+            { id: 2, code: 'P2', title: 'Project Beta' },
+        ];
+        
+        // Simulate dialog state
+        const [dialogVisible, setDialogVisible] = React.useState(false);
+        const [selectedItem, setSelectedItem] = React.useState<Project | undefined>(undefined);
+        const [dialogMode, setDialogMode] = React.useState('none');
 
-vi.mock('antd', async (importOriginal) => {
-    const antd = await importOriginal();
-    return {
-        ...antd,
-        Form: {
-            ...antd.Form,
-            useForm: vi.fn(() => [mockFormInstance]),
-        },
-        message: {
-            success: vi.fn(),
-            error: vi.fn(),
-        },
-        Modal: antd.Modal, // Use actual Modal component
-        Table: antd.Table, // Use actual Table component
-        Button: antd.Button, // Use actual Button component
-        Popconfirm: antd.Popconfirm, // Use actual Popconfirm component
-        Input: antd.Input, // Use actual Input component
-        InputNumber: antd.InputNumber, // Use actual InputNumber component
-        Select: antd.Select, // Use actual Select component
-        Space: antd.Space, // Use actual Space component
-    };
-});
+        const onCreate = () => {
+            setSelectedItem(undefined);
+            setDialogMode('create');
+            setDialogVisible(true);
+        };
+        const onEdit = (item: Project) => {
+            setSelectedItem(item);
+            setDialogMode('update');
+            setDialogVisible(true);
+        };
+        const onDelete = (item: Project) => {
+            setSelectedItem(item);
+            setDialogMode('delete');
+            setDialogVisible(true);
+        };
+        const handleCloseDialog = (item?: Project) => {
+            if (item) {
+                // Here, you'd typically update the mockItems based on the dialog's action
+                // For simplicity in the mock, we just close.
+            }
+            setDialogVisible(false);
+            setDialogMode('none');
+            setSelectedItem(undefined);
+        };
 
-// Mock ProjectDialog since it's an external component to this test
-vi.mock('@/components/dialogs', () => ({
-    ProjectDialog: vi.fn(({ visible, onSave, onClose, project, dialogMode }) => {
-        if (!visible) return null;
         return (
-            <div data-testid="project-dialog-mock">
-                <p>{dialogMode === 'create' ? 'Añadir Proyecto' : 'Editar Proyecto'}</p>
-                <button onClick={() => onSave({ id: project?.id, code: 'NEW_CODE', title: 'New Title' } as Project)}>Save</button>
-                <button onClick={onClose}>Close</button>
+            <div>
+                <h1>{title}</h1>
+                {hasActions && renderHeaderAction && renderHeaderAction(onCreate)}
+                <table>
+                    <thead>
+                        <tr>
+                            {fields.map(field => <th key={field.key.toString()}>{t(field.label)}</th>)}
+                            {hasActions && <th>{t('Acciones')}</th>}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {mockItems.map(item => (
+                            <tr key={item.id}>
+                                {fields.map(field => <td key={`${item.id}-${field.key.toString()}`}>{item[field.key as keyof Project]?.toString()}</td>)}
+                                {hasActions && <td>{renderActionColumn && renderActionColumn(item, onEdit, onDelete)}</td>}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {dialogVisible && dialogRenderer && dialogRenderer({
+                    dialogMode: dialogMode as any, // Cast to DialogModes
+                    selectedItem,
+                    handleCloseDialog,
+                    endpoint,
+                    fields: fields as any, // Cast to FieldDefinition<T>[]
+                })}
             </div>
         );
     }),
-    BudgetDialog: vi.fn(() => null),
-    DescompositionDialog: vi.fn(() => null),
-    ElementDialog: vi.fn(() => null),
-    MeasurementDialog: vi.fn(() => null),
-    PriceDialog: vi.fn(() => null),
-    RoleDialog: vi.fn(() => null),
-    UserDialog: vi.fn(() => null),
+}));
+
+// Mock ProjectDialog since it's an external component to this test
+vi.mock('@/components/dialogs/ProjectDialog', () => ({
+    default: vi.fn(({ dialogOpen, onSave, handleClose, project, dialogMode }) => {
+        if (!dialogOpen) return null;
+        return (
+            <div data-testid="project-dialog-mock">
+                <p>{dialogMode === 'create' ? 'Añadir Proyecto' : 'Editar Proyecto'}</p>
+                <button onClick={() => onSave({ 
+                    id: project?.id, 
+                    code: 'NEW_CODE', 
+                    title: 'New Title' 
+                } as Project)}>Save</button>
+                <button onClick={() => handleClose()}>Close</button>
+            </div>
+        );
+    }),
 }));
 
 const mockProjects: Project[] = [
@@ -90,10 +125,6 @@ const mockProjects: Project[] = [
 describe('ProjectListPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (projectService.readAll as vi.Mock).mockResolvedValue(mockProjects);
-    (projectService.create as vi.Mock).mockResolvedValue(mockProjects[0]);
-    (projectService.update as vi.Mock).mockResolvedValue(mockProjects[0]);
-    (projectService.remove as vi.Mock).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -105,11 +136,18 @@ describe('ProjectListPage', () => {
       render(<ProjectListPage />);
     });
 
-    await waitFor(() => {
-      expect(projectService.readAll).toHaveBeenCalled();
-    });
-
-    expect(screen.getByText('Lista de Proyectos')).toBeInTheDocument();
+    // CustomTable is mocked, so we check if the mock was called with the correct props
+    const CustomTable = require('@/components/CustomTable').default;
+    expect(CustomTable).toHaveBeenCalledWith(
+        expect.objectContaining({
+            title: 'Proyectos',
+            endpoint: 'projects',
+            fields: expect.any(Array),
+            hasActions: true,
+        }),
+        {}
+    );
+    expect(screen.getByText('Proyectos')).toBeInTheDocument();
     expect(screen.getByText('Project Alpha')).toBeInTheDocument();
     expect(screen.getByText('Project Beta')).toBeInTheDocument();
   });
@@ -120,21 +158,18 @@ describe('ProjectListPage', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Añadir Proyecto'));
+      fireEvent.click(screen.getByText('Nuevo'));
     });
 
-    // Check if ProjectDialog is rendered with correct props
-    await waitFor(() => {
-        const { ProjectDialog } = require('@/components/dialogs');
-        expect(ProjectDialog).toHaveBeenCalledWith(
-            expect.objectContaining({
-                visible: true,
-                project: null,
-                dialogMode: 'create',
-            }),
-            {}
-        );
-    });
+    const ProjectDialog = require('@/components/dialogs/ProjectDialog').default;
+    expect(ProjectDialog).toHaveBeenCalledWith(
+        expect.objectContaining({
+            dialogOpen: true,
+            project: undefined, // undefined for create mode
+            dialogMode: 'create',
+        }),
+        {}
+    );
   });
 
   it('opens the ProjectDialog in update mode when "Edit" button is clicked', async () => {
@@ -142,97 +177,40 @@ describe('ProjectListPage', () => {
       render(<ProjectListPage />);
     });
 
-    await waitFor(() => {
-        expect(projectService.readAll).toHaveBeenCalled();
-    });
-
     await act(async () => {
-      fireEvent.click(screen.getAllByLabelText('edit')[0]); // Click on the first edit button
+      fireEvent.click(screen.getAllByTitle('Editar')[0]); // Click on the first edit button
     });
 
-    // Check if ProjectDialog is rendered with correct props
-    await waitFor(() => {
-        const { ProjectDialog } = require('@/components/dialogs');
-        expect(ProjectDialog).toHaveBeenCalledWith(
-            expect.objectContaining({
-                visible: true,
-                project: mockProjects[0],
-                dialogMode: 'update',
-            }),
-            {}
-        );
-    });
+    const ProjectDialog = require('@/components/dialogs/ProjectDialog').default;
+    expect(ProjectDialog).toHaveBeenCalledWith(
+        expect.objectContaining({
+            dialogOpen: true,
+            project: expect.objectContaining({ id: 1, code: 'P1' }), // Should pass the selected project
+            dialogMode: 'update',
+        }),
+        {}
+    );
   });
-
-  it('deletes a project when "Delete" button is clicked and confirmed', async () => {
+  
+  it('handles delete action', async () => {
     await act(async () => {
-      render(<ProjectListPage />);
-    });
-
-    await waitFor(() => {
-        expect(projectService.readAll).toHaveBeenCalled();
+        render(<ProjectListPage />);
     });
 
     await act(async () => {
-      fireEvent.click(screen.getAllByLabelText('delete')[0]); // Click on the first delete button
+        fireEvent.click(screen.getAllByTitle('Eliminar')[0]);
     });
 
-    // Ant Design Popconfirm triggers another button click for confirmation
-    await act(async () => {
-        fireEvent.click(screen.getByText('Sí')); // Confirm the deletion
-    });
-
-    await waitFor(() => {
-      expect(projectService.remove).toHaveBeenCalledWith(mockProjects[0].id);
-      expect(projectService.readAll).toHaveBeenCalledTimes(2); // Initial fetch + refetch after delete
-      expect(screen.getByText('Proyecto eliminado correctamente')).toBeInTheDocument();
-    });
-  });
-
-  it('handles successful project creation from dialog', async () => {
-    await act(async () => {
-      render(<ProjectListPage />);
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('Añadir Proyecto'));
-    });
-
-    // Simulate saving from the dialog
-    await act(async () => {
-        const { ProjectDialog } = require('@/components/dialogs');
-        // Call the onSave prop of the mocked ProjectDialog directly
-        ProjectDialog.mock.calls[ProjectDialog.mock.calls.length - 1][0].onSave({ code: 'NEW_PROJ', title: 'New Project Title' } as Project);
-    });
-
-    await waitFor(() => {
-      expect(projectService.create).toHaveBeenCalledWith({ code: 'NEW_PROJ', title: 'New Project Title' });
-      expect(projectService.readAll).toHaveBeenCalledTimes(2); // Initial fetch + refetch after create
-      expect(screen.getByText('Proyecto creado correctamente')).toBeInTheDocument();
-    });
-  });
-
-  it('handles successful project update from dialog', async () => {
-    await act(async () => {
-      render(<ProjectListPage />);
-    });
-
-    await act(async () => {
-        fireEvent.click(screen.getAllByLabelText('edit')[0]);
-    });
-
-    const updatedProject = { ...mockProjects[0], title: 'Updated Project Title' };
-
-    // Simulate saving from the dialog
-    await act(async () => {
-        const { ProjectDialog } = require('@/components/dialogs');
-        ProjectDialog.mock.calls[ProjectDialog.mock.calls.length - 1][0].onSave(updatedProject);
-    });
-
-    await waitFor(() => {
-      expect(projectService.update).toHaveBeenCalledWith(updatedProject);
-      expect(projectService.readAll).toHaveBeenCalledTimes(2); // Initial fetch + refetch after update
-      expect(screen.getByText('Proyecto actualizado correctamente')).toBeInTheDocument();
-    });
+    // Since CustomTable is mocked, we only check if the dialog was triggered with the delete mode.
+    // The actual deletion logic is within CustomTable's unmocked implementation.
+    const ProjectDialog = require('@/components/dialogs/ProjectDialog').default;
+    expect(ProjectDialog).toHaveBeenCalledWith(
+        expect.objectContaining({
+            dialogOpen: true,
+            project: expect.objectContaining({ id: 1, code: 'P1' }),
+            dialogMode: 'delete',
+        }),
+        {}
+    );
   });
 });

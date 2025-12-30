@@ -31,7 +31,7 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
-// Mock Ant Design components
+// Mock Ant Design components (Form.useForm and message are globally mocked in setup.ts)
 const mockFormInstance = {
     setFieldsValue: vi.fn(),
     resetFields: vi.fn(),
@@ -39,20 +39,8 @@ const mockFormInstance = {
     getFieldsValue: vi.fn(() => ({})),
 };
 
-vi.mock('antd', async (importOriginal) => {
-    const antd = await importOriginal();
-    return {
-        ...antd,
-        Form: {
-            ...antd.Form,
-            useForm: vi.fn(() => [mockFormInstance]),
-        },
-        message: {
-            success: vi.fn(),
-            error: vi.fn(),
-        },
-    };
-});
+// No need to mock antd directly here, rely on global mock in setup.ts
+// Except for mockFormInstance, which is specific to this test.
 
 const mockProjects = [
     { id: 1, code: 'P1', title: 'Project 1' },

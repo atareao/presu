@@ -9,7 +9,7 @@ interface Props {
     dialogOpen: boolean;
     handleClose: (project?: Project) => void;
     dialogMode: DialogMode;
-    project?: Project;
+    project?: Project | null;
 }
 
 const getInitialProject = (): Project => ({
@@ -26,6 +26,7 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
 
     useEffect(() => {
         if (dialogOpen) {
+            form.resetFields(); // Reset fields to ensure no old data persists
             if ((dialogMode === DialogModes.UPDATE || dialogMode === DialogModes.READ) && project) {
                 form.setFieldsValue(project);
             } else {
@@ -52,7 +53,8 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
                 message.success(t("Proyecto actualizado con éxito"));
             } else {
                 // Llamada al servicio para crear
-                result = await projectService.create(values);
+                const { id, ...createValues } = values; // Destructure to ensure 'id' is not sent
+                result = await projectService.create(createValues);
                 message.success(t("Proyecto creado con éxito"));
             }
             

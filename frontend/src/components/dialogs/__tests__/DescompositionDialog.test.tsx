@@ -18,16 +18,7 @@ const mockFormInstance = {
     getFieldsValue: vi.fn(() => ({})),
 };
 
-vi.mock('antd', async (importOriginal) => {
-    const antd = await importOriginal();
-    return {
-        ...antd,
-        Form: {
-            ...antd.Form,
-            useForm: vi.fn(() => [mockFormInstance]),
-        },
-    };
-});
+// Ant Design Form.useForm is globally mocked in setup.ts
 
 describe('DescompositionDialog', () => {
   const onSave = vi.fn();

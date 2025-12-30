@@ -3,26 +3,28 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import LogoutPage from '../LogoutPage';
 import AuthContext from '@/components/AuthContext';
 import React from 'react';
-import { MemoryRouter, useNavigate } from 'react-router-dom';
 
 describe('LogoutPage', () => {
-    const mockUseNavigate = vi.fn();
-
     beforeEach(() => {
         vi.clearAllMocks();
-        (useNavigate as vi.Mock).mockReturnValue(mockUseNavigate);
     });
 
     it('calls logout and redirects to home', async () => {
         const logout = vi.fn();
+        const mockUseNavigate = vi.fn();
+        vi.mock('react-router-dom', async (importOriginal) => {
+            const actual = await importOriginal();
+            return {
+                ...actual,
+                useNavigate: () => mockUseNavigate,
+            };
+        });
 
         await act(async () => {
             render(
-                <MemoryRouter>
-                    <AuthContext.Provider value={{ logout, isAuthenticated: true, user: null, login: vi.fn() }}>
-                        <LogoutPage />
-                    </AuthContext.Provider>
-                </MemoryRouter>
+                <AuthContext.Provider value={{ logout, isAuthenticated: true, user: null, login: vi.fn() }}>
+                    <LogoutPage />
+                </AuthContext.Provider>
             );
         });
 

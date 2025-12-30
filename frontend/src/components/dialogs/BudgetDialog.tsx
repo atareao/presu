@@ -4,13 +4,14 @@ import { Modal, Form, Input, Select, InputNumber, message } from 'antd';
 import { DialogModes, type DialogMode } from "@/common/types";
 import type { Budget, Project } from "@/models";
 import { BudgetStatus } from "@/models";
-import { budgetService, projectService } from "@/services";
+import { budgetService } from "@/services"; // Removed projectService
 
 interface Props {
     dialogOpen: boolean;
     handleClose: (budget?: Budget) => void;
     dialogMode: DialogMode;
     budget?: Budget;
+    projects: Project[]; // New prop to receive projects
 }
 
 const getInitialBudget = (): Budget => ({
@@ -23,37 +24,17 @@ const getInitialBudget = (): Budget => ({
     updated_at: new Date()
 });
 
-const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, budget }) => {
+const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, budget, projects }) => {
     const { t } = useTranslation();
     const [form] = Form.useForm();
 
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [loadingProjects, setLoadingProjects] = useState<boolean>(false);
-
-    // Carga de proyectos usando el servicio
-    useEffect(() => {
-        const fetchProjects = async () => {
-            setLoadingProjects(true);
-            try {
-                const data = await projectService.readAll();
-                setProjects(data);
-            } catch (error) {
-                console.error("Error fetching projects:", error);
-                message.error(t("Error al cargar los proyectos"));
-            } finally {
-                setLoadingProjects(false);
-            }
-        };
-
-        if (dialogOpen) {
-            fetchProjects();
-        }
-    }, [dialogOpen, t]);
+    const [loading, setLoading] = useState(false);
+    // Removed loadingProjects state and useEffect for fetching projects internally
 
     // Sincronización del formulario
     useEffect(() => {
         if (dialogOpen) {
+            form.resetFields(); // Reset fields to ensure no old data persists
             if ((dialogMode === DialogModes.UPDATE || dialogMode === DialogModes.READ) && budget) {
                 form.setFieldsValue(budget);
             } else {
@@ -111,8 +92,8 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
             confirmLoading={loading}
             okText={t("Guardar")}
             cancelText={t("Cancelar")}
-            okButtonProps={{ 
-                style: { display: dialogMode === DialogModes.READ ? 'none' : 'inline-block' } 
+            okButtonProps={{
+                style: { display: dialogMode === DialogModes.READ ? 'none' : 'inline-block' }
             }}
         >
             <Form
@@ -130,7 +111,7 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
                     rules={[{ required: true, message: t("Selecciona un proyecto") }]}
                 >
                     <Select 
-                        loading={loadingProjects}
+                        // loading={loadingProjects} // Removed
                         placeholder={t("Selecciona un proyecto")}
                         options={projects.map(p => ({
                             label: `${p.code} - ${p.title}`,

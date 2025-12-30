@@ -36,7 +36,6 @@ vi.mock('@/services', () => ({
     userService: vi.fn(),
 }));
 
-// Mock Ant Design components
 const mockFormInstance = {
     setFieldsValue: vi.fn(),
     resetFields: vi.fn(),
@@ -44,17 +43,7 @@ const mockFormInstance = {
     getFieldsValue: vi.fn(() => ({})),
 };
 
-vi.mock('antd', async () => {
-    const antd = await vi.importActual('antd');
-    return {
-        ...antd,
-        // Use actual Modal and Form components, only mock useForm
-        Form: {
-            ...antd.Form,
-            useForm: vi.fn(() => [mockFormInstance]),
-        },
-    };
-});
+// Ant Design Form.useForm is globally mocked in setup.ts
 
 describe('PriceDialog', () => {
   const onSave = vi.fn();

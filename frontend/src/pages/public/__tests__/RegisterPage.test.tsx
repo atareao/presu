@@ -3,12 +3,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import RegisterPage from '../RegisterPage';
 import AuthContext from '@/components/AuthContext';
 import React from 'react';
-import { MemoryRouter, useNavigate } from 'react-router-dom';
-
 
 describe('RegisterPage', () => {
     const login = vi.fn();
-    const mockUseNavigate = vi.fn();
     const mockAuthContext = {
         isLoggedIn: false,
         role: null,
@@ -19,8 +16,15 @@ describe('RegisterPage', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        (useNavigate as vi.Mock).mockReturnValue(mockUseNavigate);
-        mockUseNavigate.mockClear();
+        // Mock useNavigate locally since the global mock in setup.ts might be overwritten by other imports
+        const mockUseNavigate = vi.fn();
+        vi.mock('react-router-dom', async (importOriginal) => {
+            const actual = await importOriginal();
+            return {
+                ...actual,
+                useNavigate: () => mockUseNavigate,
+            };
+        });
         global.fetch = vi.fn(); // Correctly mock global.fetch in beforeEach
     });
 
@@ -32,11 +36,9 @@ describe('RegisterPage', () => {
 
         await act(async () => {
             render(
-                <MemoryRouter>
-                    <AuthContext.Provider value={mockAuthContext}>
-                        <RegisterPage />
-                    </AuthContext.Provider>
-                </MemoryRouter>
+                <AuthContext.Provider value={mockAuthContext}>
+                    <RegisterPage />
+                </AuthContext.Provider>
             );
         });
 
@@ -53,15 +55,15 @@ describe('RegisterPage', () => {
         
         await act(async () => {
             render(
-                <MemoryRouter initialEntries={['/register']}>
-                    <AuthContext.Provider value={mockAuthContext}>
-                        <RegisterPage />
-                    </AuthContext.Provider>
-                </MemoryRouter>
+                <AuthContext.Provider value={mockAuthContext}>
+                    <RegisterPage />
+                </AuthContext.Provider>
             );
         });
 
         await waitFor(() => {
+            const { useNavigate } = require('react-router-dom');
+            const mockUseNavigate = useNavigate();
             expect(mockUseNavigate).toHaveBeenCalledWith('/login', { replace: true });
         });
     });
@@ -79,11 +81,9 @@ describe('RegisterPage', () => {
 
         await act(async () => {
             render(
-                <MemoryRouter>
-                    <AuthContext.Provider value={mockAuthContext}>
-                        <RegisterPage />
-                    </AuthContext.Provider>
-                </MemoryRouter>
+                <AuthContext.Provider value={mockAuthContext}>
+                    <RegisterPage />
+                </AuthContext.Provider>
             );
         });
 
