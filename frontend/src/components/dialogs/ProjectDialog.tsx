@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Form, Input, message } from 'antd'; 
+import { Modal, Form, Input, message } from 'antd';
 import { DialogModes, type DialogMode } from "@/common/types";
 import type { Project } from "@/models";
 import { projectService } from "@/services";
@@ -27,7 +27,7 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
     useEffect(() => {
         if (dialogOpen) {
             form.resetFields(); // Reset fields to ensure no old data persists
-            if (dialogMode === DialogModes.CREATE || ! project){
+            if (dialogMode === DialogModes.CREATE || !project) {
                 form.setFieldsValue(getInitialProject());
             } else {
                 form.setFieldsValue(project);
@@ -44,14 +44,14 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
         try {
             const values = await form.validateFields();
             setLoading(true);
-            
+
             let result: Project;
 
             if (dialogMode === DialogModes.UPDATE && project?.id) {
                 // Llamada al servicio para actualizar
                 result = await projectService.update({ ...project, ...values });
                 message.success(t("Proyecto actualizado con éxito"));
-            }else if (dialogMode === DialogModes.DELETE && project?.id) {
+            } else if (dialogMode === DialogModes.DELETE && project?.id) {
                 result = await projectService.delete({ ...project, ...values });
                 message.success(t("Proyecto eleminado con éxito"));
             } else {
@@ -60,7 +60,7 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
                 result = await projectService.create(createValues);
                 message.success(t("Proyecto creado con éxito"));
             }
-            
+
             handleClose(result);
         } catch (error) {
             console.error("Operation failed:", error);
@@ -80,6 +80,7 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
         };
         return titles[mode] || "";
     };
+    const disabled = dialogMode === DialogModes.DELETE || dialogMode === DialogModes.READ;
 
     return (
         <Modal
@@ -90,37 +91,41 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
             confirmLoading={loading}
             okText={DialogModes.DELETE ? t("Eliminar") : t("Guardar")}
             cancelText={t("Cancelar")}
-            okButtonProps={{ 
-                style: { display: dialogMode === DialogModes.READ ? 'none' : 'inline-block' } 
+            okButtonProps={{
+                style: { display: dialogMode === DialogModes.READ ? 'none' : 'inline-block' }
             }}
         >
-            <Form
-                form={form}
-                layout="vertical"
-                initialValues={getInitialProject()}
-                name="project_form"
-                preserve={false}
-                disabled={dialogMode === DialogModes.READ || loading}
-            >
-                <Form.Item
-                    label={t("Código")}
-                    name="code"
-                    rules={[{ required: true, message: t("Por favor, introduce el código del proyecto") }]}
+                <Form
+                    form={form}
+                    layout="vertical"
+                    initialValues={getInitialProject()}
+                    name="project_form"
+                    preserve={false}
+                    disabled={dialogMode === DialogModes.READ || loading}
                 >
-                    <Input placeholder="PRJ-001" />
-                </Form.Item>
+                    <Form.Item
+                        label={t("Código")}
+                        name="code"
+                        rules={[{ required: true, message: t("Por favor, introduce el código del proyecto") }]}
+                    >
+                        <Input
+                            placeholder="PRJ-001"
+                            disabled={disabled}
+                        />
+                    </Form.Item>
 
-                <Form.Item
-                    label={t("Título")}
-                    name="title"
-                    rules={[{ required: true, message: t("El título es obligatorio") }]}
-                >
-                    <Input.TextArea 
-                        placeholder={t("Nombre o descripción del proyecto")} 
-                        rows={4} 
-                    />
-                </Form.Item>
-            </Form>
+                    <Form.Item
+                        label={t("Título")}
+                        name="title"
+                        rules={[{ required: true, message: t("El título es obligatorio") }]}
+                    >
+                        <Input.TextArea
+                            placeholder={t("Nombre o descripción del proyecto")}
+                            rows={4}
+                            disabled={disabled}
+                        />
+                    </Form.Item>
+                </Form>
         </Modal>
     );
 };
