@@ -1,15 +1,10 @@
 // src/pages/admin/__tests__/AdminHomePage.test.tsx
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MemoryRouter } from 'react-router-dom';
 import AdminHomePage from '../AdminHomePage';
 import * as utils from '@/common/utils';
-
-// Mock react-router-dom
-vi.mock('react-router-dom', () => ({
-    useNavigate: vi.fn(() => vi.fn()),
-    MemoryRouter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
+import React from 'react';
+import { MemoryRouter, useNavigate } from 'react-router-dom';
 
 // Mock the utils module
 vi.mock('@/common/utils', () => ({
@@ -24,8 +19,11 @@ vi.mock('react-i18next', () => ({
 }));
 
 describe('AdminHomePage', () => {
+    const mockUseNavigate = vi.fn();
+
     beforeEach(() => {
         vi.clearAllMocks();
+        (useNavigate as vi.Mock).mockReturnValue(mockUseNavigate);
     });
 
     it('fetches and displays dashboard data', async () => {
@@ -33,38 +31,45 @@ describe('AdminHomePage', () => {
             .mockResolvedValueOnce({ data: 10 }) // projects
             .mockResolvedValueOnce({ data: 25 }); // budgets
 
-        render(
-            <MemoryRouter>
-                <AdminHomePage />
-            </MemoryRouter>
-        );
+        await act(async () => {
+            render(
+                <MemoryRouter>
+                    <AdminHomePage />
+                </MemoryRouter>
+            );
+        });
 
         expect(screen.getByText(/Projectos/)).toBeInTheDocument();
         expect(screen.getByText(/Presupuestos/)).toBeInTheDocument();
 
-        await vi.waitFor(() => {
-            expect(utils.loadData).toHaveBeenCalledWith('stats/projects');
-            expect(utils.loadData).toHaveBeenCalledWith('stats/budgets');
+        await act(async () => {
+            // Allow promises to resolve and component to update
+            await vi.waitFor(() => {
+                expect(utils.loadData).toHaveBeenCalledWith('stats/projects');
+                expect(utils.loadData).toHaveBeenCalledWith('stats/budgets');
+            });
         });
 
-        await vi.waitFor(() => {
-            expect(screen.getByText('Projectos: 10')).toBeInTheDocument();
-            expect(screen.getByText('Presupuestos: 25')).toBeInTheDocument();
-        });
+        expect(screen.getByText('Projectos: 10')).toBeInTheDocument();
+        expect(screen.getByText('Presupuestos: 25')).toBeInTheDocument();
     });
 
     it('handles API errors gracefully', async () => {
         (utils.loadData as vi.Mock).mockRejectedValue(new Error('API Error'));
 
-        render(
-            <MemoryRouter>
-                <AdminHomePage />
-            </MemoryRouter>
-        );
+        await act(async () => {
+            render(
+                <MemoryRouter>
+                    <AdminHomePage />
+                </MemoryRouter>
+            );
+        });
 
-        await vi.waitFor(() => {
+        await act(async () => {
             // Check that the loading indicator is gone
-            expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+            await vi.waitFor(() => {
+                expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+            });
         });
         
         // The component should still render, but with default values

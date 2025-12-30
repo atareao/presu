@@ -2,7 +2,7 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import DescompositionDialog from '../DescompositionDialog';
-import { Descomposition } from '@/models';
+import type { Descomposition } from '@/models';
 import React from 'react';
 
 vi.mock('react-i18next', () => ({
@@ -41,14 +41,10 @@ vi.mock('antd', async () => {
                 </div>
             );
         }),
+        // Do not mock Form or Form.Item, let them be actual components
         Form: {
             ...antd.Form,
             useForm: vi.fn(() => [mockFormInstance]),
-            Item: ({ children, ...props }: any) => (
-                <div data-testid="form-item-mock" {...props}>
-                    {children}
-                </div>
-            ),
         },
         Input: (props: any) => <input data-testid="input-mock" {...props} />,
         InputNumber: (props: any) => <input type="number" data-testid="input-number-mock" {...props} />,

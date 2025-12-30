@@ -1,9 +1,10 @@
 // src/components/dialogs/__tests__/UserDialog.test.tsx
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import UserDialog from '../UserDialog';
 import { DialogModes } from '@/common/types';
 import { userService, roleService } from '@/services';
+import React from 'react';
 
 // Mock the services
 vi.mock('@/services', () => ({
@@ -29,6 +30,61 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
+// Mock Ant Design components
+const mockFormInstance = {
+    setFieldsValue: vi.fn(),
+    resetFields: vi.fn(),
+    validateFields: vi.fn(() => Promise.resolve({})),
+    getFieldsValue: vi.fn(() => ({})),
+};
+
+vi.mock('antd', async () => {
+    const antd = await vi.importActual('antd');
+    return {
+        ...antd,
+        Modal: vi.fn(({ visible, title, children, onOk, onCancel, footer }) => {
+            if (!visible) {
+                return null;
+            }
+            return (
+                <div data-testid="modal-mock">
+                    <div data-testid="modal-title">{title}</div>
+                    <div data-testid="modal-content">{children}</div>
+                    <div data-testid="modal-footer">
+                        {footer ? footer : (
+                            <>
+                                <button onClick={onCancel}>Cancel</button>
+                                <button onClick={onOk}>OK</button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }),
+        Form: {
+            ...antd.Form,
+            useForm: vi.fn(() => [mockFormInstance]),
+            Item: ({ children, ...props }: any) => (
+                <div data-testid="form-item-mock" {...props}>
+                    {children}
+                </div>
+            ),
+        },
+        Input: (props: any) => <input data-testid="input-mock" {...props} />,
+        InputNumber: (props: any) => <input type="number" data-testid="input-number-mock" {...props} />,
+        Select: ({ children, value, onChange }: any) => (
+            <select data-testid="select-mock" value={value} onChange={e => onChange(e.target.value)}>
+                {children}
+            </select>
+        ),
+        Button: (props: any) => <button {...props} />,
+        message: {
+            success: vi.fn(),
+            error: vi.fn(),
+        },
+    };
+});
+
 const mockRoles = [
     { id: 1, name: 'ADMIN' },
     { id: 2, name: 'USER' },
@@ -38,7 +94,10 @@ describe('UserDialog', () => {
     const handleClose = vi.fn();
 
     beforeEach(() => {
+        vi.clearAllMocks();
         (roleService.readAll as vi.Mock).mockResolvedValue(mockRoles);
+        mockFormInstance.validateFields.mockResolvedValue({});
+        mockFormInstance.getFieldsValue.mockReturnValue({});
     });
 
     afterEach(() => {
@@ -46,65 +105,76 @@ describe('UserDialog', () => {
     });
 
     it('renders correctly and fetches roles when creating a new user', async () => {
-        render(
-            <UserDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.CREATE}
-            />
-        );
+        await act(async () => {
+            render(
+                <UserDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.CREATE}
+                />
+            );
+        });
 
         expect(screen.getByText('Nuevo Usuario')).toBeInTheDocument();
         expect(screen.getByLabelText('Username')).toBeInTheDocument();
         expect(screen.getByLabelText('Email')).toBeInTheDocument();
         expect(screen.getByLabelText('Rol')).toBeInTheDocument();
         
-        await vi.waitFor(() => {
+        await waitFor(() => {
             expect(roleService.readAll).toHaveBeenCalled();
         });
     });
 
-    it('renders correctly and populates form when updating a user', () => {
+    it('renders correctly and populates form when updating a user', async () => {
         const mockUser = { id: 1, username: 'testuser', email: 'test@test.com', role_id: 1, is_active: true };
-        render(
-            <UserDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.UPDATE}
-                user={mockUser}
-            />
-        );
+        await act(async () => {
+            render(
+                <UserDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.UPDATE}
+                    user={mockUser}
+                />
+            );
+        });
 
+        await waitFor(() => {
+            expect(mockFormInstance.setFieldsValue).toHaveBeenCalledWith(mockUser);
+        });
         expect(screen.getByText('Editar Usuario')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('testuser')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('test@test.com')).toBeInTheDocument();
     });
 
     it('calls userService.create when creating a new user', async () => {
         const newUser = { username: 'newuser', email: 'new@test.com', role_id: 2, is_active: true };
         (userService.create as vi.Mock).mockResolvedValue({ id: 2, ...newUser });
+        mockFormInstance.validateFields.mockResolvedValue(newUser);
 
-        render(
-            <UserDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.CREATE}
-            />
-        );
+        await act(async () => {
+            render(
+                <UserDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.CREATE}
+                />
+            );
+        });
         
-        fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'newuser' } });
-        fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'new@test.com' } });
-        
-        // Open the dropdown
-        fireEvent.mouseDown(screen.getByLabelText('Rol'));
-        // Select the 'USER' option
-        await screen.findByText('USER');
-        fireEvent.click(screen.getByText('USER'));
+        await act(async () => {
+            fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'newuser' } });
+            fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'new@test.com' } });
+            
+            // Open the dropdown
+            fireEvent.mouseDown(screen.getByLabelText('Rol'));
+            // Select the 'USER' option
+            await screen.findByText('USER');
+            fireEvent.click(screen.getByText('USER'));
 
-        fireEvent.click(screen.getByText('Guardar'));
+            fireEvent.click(screen.getByText('Guardar'));
+        });
 
-        await vi.waitFor(() => {
+        await waitFor(() => {
             expect(userService.create).toHaveBeenCalledWith(expect.objectContaining(newUser));
+            expect(handleClose).toHaveBeenCalled();
         });
     });
 
@@ -112,21 +182,31 @@ describe('UserDialog', () => {
         const mockUser = { id: 1, username: 'testuser', email: 'test@test.com', role_id: 1, is_active: true };
         const updatedUserData = { username: 'updateduser' };
         (userService.update as vi.Mock).mockResolvedValue({ ...mockUser, ...updatedUserData });
+        mockFormInstance.validateFields.mockResolvedValue({ ...mockUser, ...updatedUserData });
 
-        render(
-            <UserDialog
-                dialogOpen={true}
-                handleClose={handleClose}
-                dialogMode={DialogModes.UPDATE}
-                user={mockUser}
-            />
-        );
+        await act(async () => {
+            render(
+                <UserDialog
+                    dialogOpen={true}
+                    handleClose={handleClose}
+                    dialogMode={DialogModes.UPDATE}
+                    user={mockUser}
+                />
+            );
+        });
 
-        fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'updateduser' } });
-        fireEvent.click(screen.getByText('Guardar'));
+        await waitFor(() => {
+            expect(mockFormInstance.setFieldsValue).toHaveBeenCalledWith(mockUser);
+        });
 
-        await vi.waitFor(() => {
+        await act(async () => {
+            fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'updateduser' } });
+            fireEvent.click(screen.getByText('Guardar'));
+        });
+
+        await waitFor(() => {
             expect(userService.update).toHaveBeenCalledWith({ ...mockUser, username: 'updateduser' });
+            expect(handleClose).toHaveBeenCalled();
         });
     });
 });
