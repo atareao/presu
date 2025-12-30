@@ -80,7 +80,7 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
         };
         return titles[mode] || "";
     };
-    const disabled = dialogMode === DialogModes.DELETE || dialogMode === DialogModes.READ;
+    const disabled = dialogMode === DialogModes.DELETE || dialogMode === DialogModes.READ || loading;
 
     return (
         <Modal
@@ -101,7 +101,6 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
                     initialValues={getInitialProject()}
                     name="project_form"
                     preserve={false}
-                    disabled={dialogMode === DialogModes.READ || loading}
                 >
                     <Form.Item
                         label={t("Código")}
