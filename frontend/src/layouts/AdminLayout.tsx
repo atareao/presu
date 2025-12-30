@@ -1,23 +1,12 @@
-import React, { useState, useMemo, useEffect, useContext } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import { useNavigate, Navigate, Outlet, useLocation } from 'react-router';
-import { Button, Layout, Menu, Image, theme, Typography, Flex } from 'antd';
+import { Button, Layout, Menu, Image, Typography, Flex } from 'antd';
 import type { MenuProps } from 'antd';
 import {
-    TeamOutlined,
     LogoutOutlined,
-    UserOutlined,
     ClusterOutlined,
     BookOutlined,
     SettingOutlined,
-    AppstoreOutlined,
-    TagsOutlined,
-    BranchesOutlined,
-    PushpinOutlined,
-    SafetyCertificateOutlined,
-    CarOutlined,
-    InboxOutlined,
-    DeploymentUnitOutlined,
-    PartitionOutlined,
 } from '@ant-design/icons';
 
 import ModeSwitcher from '@/components/ModeSwitcher';
@@ -63,7 +52,6 @@ const MENU_ITEMS: CustomMenuItem[] = [
 const AdminLayout: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { token } = theme.useToken();
     const { isLoggedIn, role } = useContext(AuthContext);
 
     const [collapsed, setCollapsed] = useState(false);
