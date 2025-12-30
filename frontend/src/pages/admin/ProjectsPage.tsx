@@ -52,7 +52,7 @@ const ProjectsPage: React.FC = () => {
         <div style={{ padding: '24px' }}>
             <CustomTable<Project>
                 title={t(TITLE)}
-                fetchDataFunction={projectService.fetchProjects}
+                fetchDataFunction={projectService.readPaginate}
                 fields={FIELDS}
                 t={t}
                 hasActions={true} 

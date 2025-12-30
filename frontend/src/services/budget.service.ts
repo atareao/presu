@@ -1,5 +1,6 @@
 import { apiClient } from "./api.client";
 import type { Budget } from "@/models";
+import type Response from "@/models/response";
 
 const ENDPOINT = "/api/v1/budgets";
 
@@ -19,6 +20,14 @@ export const budgetService = {
      */
     readById: (id: number): Promise<Budget> => {
         return apiClient.get(`${ENDPOINT}/${id}`);
+    },
+
+    readPaginate: (params: Map<string, string>): Promise<Response<Budget[]>> => {
+        const queryString = new URLSearchParams();
+        params.forEach((value, key) => {
+            queryString.append(key, value);
+        });
+        return apiClient.get(`${ENDPOINT}?${queryString.toString()}`);
     },
 
     /**

@@ -1,5 +1,6 @@
 import { apiClient } from "./api.client";
 import type { Price } from "@/models";
+import type Response from "@/models/response";
 
 const ENDPOINT = "/api/v1/prices";
 
@@ -10,6 +11,14 @@ export const priceService = {
 
     readById: (id: number): Promise<Price> => {
         return apiClient.get(`${ENDPOINT}/${id}`);
+    },
+
+    readPaginate: (params: Map<string, string>): Promise<Response<Price[]>> => {
+        const queryString = new URLSearchParams();
+        params.forEach((value, key) => {
+            queryString.append(key, value);
+        });
+        return apiClient.get(`${ENDPOINT}?${queryString.toString()}`);
     },
 
     create: (price: Partial<Price>): Promise<Price> => {
