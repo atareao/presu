@@ -24,6 +24,7 @@ const RegisterPage = lazy(() => import('@/pages/public/RegisterPage'));
 /** Admin **/
 const LogoutPage = lazy(() => import('@/pages/admin/LogoutPage'));
 const AdminHomePage = lazy(() => import('@/pages/admin/AdminHomePage'));
+const ProjectListPage = lazy(() => import('@/pages/admin/ProjectListPage'));
 
 // Inicialización de i18n
 i18n
@@ -79,13 +80,12 @@ const AppContent = () => {
                         <Route path="/admin" element={<AdminLayout />} >
                             <Route index element={<AdminHomePage />} />
                             <Route path="logout" element={<LogoutPage />} />
-
+                            <Route path="projects" element={<ProjectListPage />} />
+                        
                             {/*
-                                <Route index element={<ProjectsPage />} />
                                 <Route index element={<BudgetsPage />} />
                                 */}
-                        </Route>
-                    </Routes>
+                        </Route>                    </Routes>
                 </Suspense>
             </BrowserRouter>
         </ConfigProvider>

@@ -38,46 +38,14 @@ const mockFormInstance = {
     getFieldsValue: vi.fn(() => ({})),
 };
 
-vi.mock('antd', async () => {
-    const antd = await vi.importActual('antd');
+vi.mock('antd', async (importOriginal) => {
+    const antd = await importOriginal();
     return {
         ...antd,
-        Modal: vi.fn(({ visible, title, children, onOk, onCancel, footer }) => {
-            if (!visible) {
-                return null;
-            }
-            return (
-                <div data-testid="modal-mock">
-                    <div data-testid="modal-title">{title}</div>
-                    <div data-testid="modal-content">{children}</div>
-                    <div data-testid="modal-footer">
-                        {footer ? footer : (
-                            <>
-                                <button onClick={onCancel}>Cancel</button>
-                                <button onClick={onOk}>OK</button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            );
-        }),
         Form: {
             ...antd.Form,
             useForm: vi.fn(() => [mockFormInstance]),
-            Item: ({ children, ...props }: any) => (
-                <div data-testid="form-item-mock" {...props}>
-                    {children}
-                </div>
-            ),
         },
-        Input: (props: any) => <input data-testid="input-mock" {...props} />,
-        InputNumber: (props: any) => <input type="number" data-testid="input-number-mock" {...props} />,
-        Select: ({ children, value, onChange }: any) => (
-            <select data-testid="select-mock" value={value} onChange={e => onChange(e.target.value)}>
-                {children}
-            </select>
-        ),
-        Button: (props: any) => <button {...props} />,
         message: {
             success: vi.fn(),
             error: vi.fn(),

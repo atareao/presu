@@ -27,7 +27,6 @@ export default defineConfig({
     resolve: {
         alias: {
             "@": path.resolve(__dirname, 'src/'),
-            "react-router-dom": path.resolve(__dirname, 'src/__mocks__/react-router-dom.tsx'),
         }
     },
     build: {
@@ -65,6 +64,6 @@ export default defineConfig({
         },
     },
     optimizeDeps: {
-        exclude: [], // Removed react-router-dom from exclude
+        exclude: ['react-router-dom'],
     },
 });
