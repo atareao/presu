@@ -29,7 +29,7 @@ export const userService = {
         return apiClient.patch(ENDPOINT, user);
     },
 
-    delete: (id: number): Promise<User> => {
-        return apiClient.delete(`${ENDPOINT}/${id}`);
-    }
+    delete: (user: Partial<User>): Promise<User> => {
+        return apiClient.delete(ENDPOINT, user);
+    },
 };

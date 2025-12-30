@@ -1,7 +1,7 @@
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream;
-use quote::{quote, format_ident};
-use syn::{ItemStruct, Error, Fields};
+use quote::{format_ident, quote};
+use syn::{Error, Fields, ItemStruct};
 
 pub fn expand_axum_crud(attr: TokenStream1, input: ItemStruct) -> TokenStream {
     // 1. Identidad del struct principal (ej: Unit, User, Task)
@@ -11,14 +11,15 @@ pub fn expand_axum_crud(attr: TokenStream1, input: ItemStruct) -> TokenStream {
     if let Fields::Unit = input.fields {
         return Error::new_spanned(
             &input,
-            "#[axum_crud] solo puede usarse en structs con campos (named fields)."
-        ).to_compile_error();
+            "#[axum_crud] solo puede usarse en structs con campos (named fields).",
+        )
+        .to_compile_error();
     }
 
     // 3. Parseo de atributos configurables
     // Espera: #[axum_crud(path = "/units", new = "NewItem", params = "Params")]
     let attr_str = attr.to_string();
-    
+
     let route_path = extract_attr(&attr_str, "path").unwrap_or_else(|| "/".into());
     let new_type_name = extract_attr(&attr_str, "new").unwrap_or_else(|| "NewItem".into());
     let params_type_name = extract_attr(&attr_str, "params").unwrap_or_else(|| "Params".into());
@@ -97,6 +98,7 @@ pub fn expand_axum_crud(attr: TokenStream1, input: ItemStruct) -> TokenStream {
             }
 
             // 2. Intento de lectura paginada
+            if params.page.is_some() {
             let records_res = #name::read_paged(&app_state.pool, &params).await;
             let count_res = #name::count_paged(&app_state.pool, &params).await;
 
@@ -108,6 +110,7 @@ pub fn expand_axum_crud(attr: TokenStream1, input: ItemStruct) -> TokenStream {
                     crate::models::Data::Some(serde_json::to_value(records).unwrap()),
                     pagination
                 );
+            }
             }
 
             // 3. Fallback: Todos

@@ -14,7 +14,7 @@ import { BudgetStatus } from '@/models';
 import { DialogModes } from '@/common/types';
 import BudgetDialog from '@/components/dialogs/BudgetDialog';
 import { projectService } from '@/services'; // Import projectService
-import * as budgetService from '@/services/budget.service';
+import { budgetService } from '@/services';
 
 const { Text } = Typography;
 
@@ -31,7 +31,7 @@ const BudgetsPage: React.FC = () => {
             setLoadingProjects(true);
             try {
                 const fetchedProjects = await projectService.readAll();
-                setProjects(fetchedProjects);
+                setProjects(fetchedProjects.data || []);
             } catch (error) {
                 console.error('Failed to fetch projects:', error);
                 message.error(t('Error al cargar proyectos'));
@@ -58,9 +58,6 @@ const BudgetsPage: React.FC = () => {
             editable: false,
             width: 150,
             render: (project_id: number) => {
-                console.log("=======================");
-                console.log('Projects', projects);
-                console.log("=======================");
                 const project = projects.find(p => p.id === project_id);
                 return project ? <Text>{project.title}</Text> : <Text>{t('Desconocido')}</Text>;
             },
@@ -117,7 +114,7 @@ const BudgetsPage: React.FC = () => {
         <div style={{ padding: '24px' }}>
             <CustomTable<Budget>
                 title={t(TITLE)}
-                fetchDataFunction={budgetService.fetchBudgets}
+                fetchDataFunction={budgetService.readPaginate}
                 fields={FIELDS}
                 t={t}
                 hasActions={true} 

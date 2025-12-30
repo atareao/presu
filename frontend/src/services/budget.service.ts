@@ -48,7 +48,7 @@ export const budgetService = {
     /**
      * Elimina un presupuesto por ID.
      */
-    delete: (id: number): Promise<Budget> => {
-        return apiClient.delete(`${ENDPOINT}/${id}`);
+    delete: (budget: Partial<Budget>): Promise<Budget> => {
+        return apiClient.delete(ENDPOINT, budget);
     }
 };

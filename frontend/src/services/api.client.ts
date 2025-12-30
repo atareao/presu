@@ -10,23 +10,22 @@ async function handleResponse(response: Response) {
 
 export const apiClient = {
     get: (endpoint: string) => fetch(`${BASE_URL}${endpoint}`).then(handleResponse),
-    
+
     post: (endpoint: string, data: any) => fetch(`${BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     }).then(handleResponse),
 
-    patch: (endpoint: string, data: any) => {
-        const url = data.id ? `${BASE_URL}${endpoint}/${data.id}` : `${BASE_URL}${endpoint}`;
-        return fetch(url, {
+    patch: (endpoint: string, data: any) =>
+        fetch(`${BASE_URL}${endpoint}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
-        }).then(handleResponse);
-    },
+        }).then(handleResponse),
 
-    delete: (endpoint: string) => fetch(`${BASE_URL}${endpoint}`, {
+    delete: (endpoint: string, data: any) => 
+        fetch(`${BASE_URL}${endpoint}?id=${data.id}`, {
         method: 'DELETE'
     }).then(handleResponse),
 };

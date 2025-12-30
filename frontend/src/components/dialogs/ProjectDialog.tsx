@@ -27,10 +27,10 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
     useEffect(() => {
         if (dialogOpen) {
             form.resetFields(); // Reset fields to ensure no old data persists
-            if ((dialogMode === DialogModes.UPDATE || dialogMode === DialogModes.READ) && project) {
-                form.setFieldsValue(project);
-            } else {
+            if (dialogMode === DialogModes.CREATE || ! project){
                 form.setFieldsValue(getInitialProject());
+            } else {
+                form.setFieldsValue(project);
             }
         }
     }, [dialogOpen, dialogMode, project, form]);
@@ -51,6 +51,9 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
                 // Llamada al servicio para actualizar
                 result = await projectService.update({ ...project, ...values });
                 message.success(t("Proyecto actualizado con éxito"));
+            }else if (dialogMode === DialogModes.DELETE && project?.id) {
+                result = await projectService.delete({ ...project, ...values });
+                message.success(t("Proyecto eleminado con éxito"));
             } else {
                 // Llamada al servicio para crear
                 const { id, ...createValues } = values; // Destructure to ensure 'id' is not sent
@@ -85,7 +88,7 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
             onOk={onOk}
             onCancel={() => handleClose()}
             confirmLoading={loading}
-            okText={t("Guardar")}
+            okText={DialogModes.DELETE ? t("Eliminar") : t("Guardar")}
             cancelText={t("Cancelar")}
             okButtonProps={{ 
                 style: { display: dialogMode === DialogModes.READ ? 'none' : 'inline-block' } 

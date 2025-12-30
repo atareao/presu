@@ -29,7 +29,7 @@ export const priceService = {
         return apiClient.patch(ENDPOINT, price);
     },
 
-    delete: (id: number): Promise<Price> => {
-        return apiClient.delete(`${ENDPOINT}/${id}`);
-    }
+    delete: (price: Partial<Price>): Promise<Price> => {
+        return apiClient.delete(ENDPOINT, price);
+    },
 };

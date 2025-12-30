@@ -22,7 +22,6 @@ interface DialogRendererParams<T> {
     dialogMode: DialogMode;
     selectedItem: T | undefined;
     handleCloseDialog: (item?: T | undefined) => void;
-    endpoint: string;
     fields: FieldDefinition<T>[];
 }
 
@@ -244,7 +243,6 @@ const CustomTable = <T extends { id: number | string }>(props: Props<T>) => {
                 dialogMode,
                 selectedItem,
                 handleCloseDialog,
-                endpoint,
                 fields
             })}
             <Flex vertical justify="center" align="center" gap="middle" >

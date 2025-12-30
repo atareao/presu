@@ -29,7 +29,7 @@ export const roleService = {
         return apiClient.patch(ENDPOINT, role);
     },
 
-    delete: (id: number): Promise<Role> => {
-        return apiClient.delete(`${ENDPOINT}/${id}`);
-    }
+    delete: (role: Partial<Role>): Promise<Role> => {
+        return apiClient.delete(ENDPOINT, role);
+    },
 };

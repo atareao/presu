@@ -29,7 +29,7 @@ export const descompositionService = {
         return apiClient.patch(ENDPOINT, descomposition);
     },
 
-    delete: (id: number): Promise<Descomposition> => {
-        return apiClient.delete(`${ENDPOINT}/${id}`);
-    }
+    delete: (descomposition: Partial<Descomposition>): Promise<Descomposition> => {
+        return apiClient.delete(ENDPOINT, descomposition);
+    },
 };

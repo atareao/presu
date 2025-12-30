@@ -29,7 +29,7 @@ export const measurementService = {
         return apiClient.patch(ENDPOINT, measurement);
     },
 
-    delete: (id: number): Promise<Measurement> => {
-        return apiClient.delete(`${ENDPOINT}/${id}`);
-    }
+    delete: (measurement: Partial<Measurement>): Promise<Measurement> => {
+        return apiClient.delete(ENDPOINT, measurement);
+    },
 };

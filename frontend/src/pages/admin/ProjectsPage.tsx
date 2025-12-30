@@ -96,8 +96,6 @@ const ProjectsPage: React.FC = () => {
                             handleClose={handleCloseDialog}
                             dialogMode={dialogMode}
                             project={selectedItem}
-                            // Si tu HumanResourceDialog necesitara los mensajes:
-                            // messages={dialogMessages} 
                         />
                     );
                 }}

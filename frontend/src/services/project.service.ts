@@ -5,7 +5,7 @@ import type Response from "@/models/response";
 const ENDPOINT = "/api/v1/projects";
 
 export const projectService = {
-    readAll: (): Promise<Project[]> => {
+    readAll: (): Promise<Response<Project[]>> => {
         return apiClient.get(ENDPOINT);
     },
 
@@ -29,8 +29,8 @@ export const projectService = {
         return apiClient.patch(ENDPOINT, project);
     },
 
-    delete: (id: number): Promise<Project> => {
-        return apiClient.delete(`${ENDPOINT}/${id}`);
+    delete: (project: Partial<Project>): Promise<Project> => {
+        return apiClient.delete(ENDPOINT, project);
     },
 
 };
