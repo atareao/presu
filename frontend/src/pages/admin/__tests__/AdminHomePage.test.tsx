@@ -1,13 +1,11 @@
-// src/pages/admin/__tests__/AdminHomePage.test.tsx
-import { render, screen, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AdminHomePage from '../AdminHomePage';
-import * as utils from '@/common/utils';
+import * as statsService from '@/services/stats.service';
 import React from 'react';
 
-// Mock the utils module
-vi.mock('@/common/utils', () => ({
-    loadData: vi.fn(),
+// Mock the services module
+vi.mock('@/services/stats.service', () => ({
+    fetchProjectsStats: vi.fn(),
+    fetchBudgetsStats: vi.fn(),
 }));
 
 // Mock react-i18next
@@ -23,9 +21,10 @@ describe('AdminHomePage', () => {
     });
 
     it('fetches and displays dashboard data', async () => {
-        (utils.loadData as vi.Mock)
-            .mockResolvedValueOnce({ data: 10 }) // projects
-            .mockResolvedValueOnce({ data: 25 }); // budgets
+        (statsService.fetchProjectsStats as vi.Mock)
+            .mockResolvedValue({ data: 10 }); 
+        (statsService.fetchBudgetsStats as vi.Mock)
+            .mockResolvedValue({ data: 25 }); 
 
         await act(async () => {
             render(
@@ -39,8 +38,8 @@ describe('AdminHomePage', () => {
         await act(async () => {
             // Allow promises to resolve and component to update
             await vi.waitFor(() => {
-                expect(utils.loadData).toHaveBeenCalledWith('stats/projects');
-                expect(utils.loadData).toHaveBeenCalledWith('stats/budgets');
+                expect(statsService.fetchProjectsStats).toHaveBeenCalledTimes(1);
+                expect(statsService.fetchBudgetsStats).toHaveBeenCalledTimes(1);
             });
         });
 
@@ -49,7 +48,8 @@ describe('AdminHomePage', () => {
     });
 
     it('handles API errors gracefully', async () => {
-        (utils.loadData as vi.Mock).mockRejectedValue(new Error('API Error'));
+        (statsService.fetchProjectsStats as vi.Mock).mockRejectedValue(new Error('API Error'));
+        (statsService.fetchBudgetsStats as vi.Mock).mockRejectedValue(new Error('API Error'));
 
         await act(async () => {
             render(

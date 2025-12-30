@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from "react-i18next";
 import { Flex, Typography, Avatar, Card, Button } from 'antd';
 
-import { loadData } from "@/common/utils";
 import Logo from "@/assets/logo.svg";
 import { VERSION } from "@/constants";
+import * as statsService from "@/services/stats.service";
 
 const { Title } = Typography;
 const TITLE = `Presu (${VERSION})`;
@@ -25,8 +25,8 @@ const AdminHomePage: React.FC = () => {
     const fetchDashboardData = useCallback(async () => {
         try {
             const [projects, budgets] = await Promise.all([
-                loadData("stats/projects"),
-                loadData("stats/budgets"),
+                statsService.fetchProjectsStats(),
+                statsService.fetchBudgetsStats(),
             ]);
 
             console.log("Totals loaded:", projects, budgets);
