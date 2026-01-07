@@ -30,7 +30,7 @@ const UsersPage: React.FC = () => {
             setLoadingRoles(true);
             try {
                 const fetchedRoles = await roleService.readAll();
-                setRoles(fetchedRoles || []);
+                setRoles(fetchedRoles.data || []);
             } catch (error) {
                 console.error('Failed to fetch roles:', error);
                 message.error(t('Error al cargar roles'));

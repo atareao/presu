@@ -5,8 +5,10 @@ import type Response from "@/models/response";
 const ENDPOINT = "/api/v1/users";
 
 export const userService = {
-    readAll: (): Promise<User[]> => {
-        return apiClient.get(ENDPOINT);
+    readAll: (params?: Record<string, any>): Promise<User[]> => {
+        // Si hay parámetros (page, limit, status...), los añadimos a la URL
+        const query = params ? `?${new URLSearchParams(params).toString()}` : "";
+        return apiClient.get(`${ENDPOINT}${query}`);
     },
 
     readById: (id: number): Promise<User> => {

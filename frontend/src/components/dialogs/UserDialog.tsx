@@ -31,8 +31,8 @@ const UserDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, user
         const fetchRoles = async () => {
             setLoadingRoles(true);
             try {
-                const data = await roleService.readAll(); 
-                setRoles(data);
+                const response = await roleService.readAll(); 
+                setRoles(response.data || []);
             } catch (error) {
                 console.error("Error fetching roles:", error);
                 message.error(t("Error al cargar los roles"));

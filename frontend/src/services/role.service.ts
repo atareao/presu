@@ -5,7 +5,7 @@ import type Response from "@/models/response";
 const ENDPOINT = "/api/v1/roles";
 
 export const roleService = {
-    readAll: (): Promise<Role[]> => {
+    readAll: (): Promise<Response<Role[]>> => {
         return apiClient.get(ENDPOINT);
     },
 
