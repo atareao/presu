@@ -58,15 +58,17 @@ const RoleDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, role
         return titles[mode] || "";
     };
 
+    const disabled = dialogMode === DialogModes.DELETE || dialogMode === DialogModes.READ;
     return (
         <Modal
             title={getTitle(dialogMode)}
             open={dialogOpen}
             onOk={onOk}
             onCancel={() => handleClose()}
-            okText={t("Guardar")}
+            okText={dialogMode === DialogModes.DELETE ? t("Eliminar") : t("Guardar")}
             cancelText={t("Cancelar")}
             okButtonProps={{ 
+                danger: dialogMode === DialogModes.DELETE,
                 style: { display: dialogMode === DialogModes.READ ? 'none' : 'inline-block' } 
             }}
         >
@@ -90,7 +92,10 @@ const RoleDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, role
                         }
                     ]}
                 >
-                    <Input placeholder="ADMIN_ROLE" />
+                    <Input
+                        placeholder="ADMIN_ROLE"
+                        disabled={disabled}
+                    />
                 </Form.Item>
             </Form>
         </Modal>

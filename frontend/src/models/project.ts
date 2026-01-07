@@ -1,6 +1,6 @@
 // project.rs
 export interface Project {
-  id?: number;
+  id: number;
   code: string;
   title: string;
   created_at?: Date;

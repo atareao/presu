@@ -28,24 +28,44 @@ export type CustomMenuItem = MenuItem & {
 
 const MENU_ITEMS: CustomMenuItem[] = [
     {
-        key: "sub1",
+        key: "sub-01",
         label: "Admin",
         icon: <SettingOutlined />,
         children: [
             {
-                key: "sub1-1",
+                key: "sub-01-01",
                 label: "Proyectos",
                 icon: <ClusterOutlined />,
                 navigateTo: "/admin/projects",
             },
             {
-                key: "sub1-2",
+                key: "sub-01-02",
                 label: "Presupuestos",
                 icon: <BookOutlined />,
                 navigateTo: "/admin/budgets",
             },
         ]
-    }
+    },
+    {
+        key: "sub-99",
+        label: "Users",
+        icon: <SettingOutlined />,
+        children: [
+            {
+                key: "sub-99-01",
+                label: "Roles",
+                icon: <ClusterOutlined />,
+                navigateTo: "/admin/roles",
+            },
+            {
+                key: "sub-99-02",
+                label: "Users",
+                icon: <BookOutlined />,
+                navigateTo: "/admin/users",
+            },
+        ]
+    },
+
 ];
 
 

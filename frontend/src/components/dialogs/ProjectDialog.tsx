@@ -13,6 +13,7 @@ interface Props {
 }
 
 const getInitialProject = (): Project => ({
+    id: -1,
     code: "",
     title: "",
     created_at: new Date(),
@@ -27,10 +28,10 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
     useEffect(() => {
         if (dialogOpen) {
             form.resetFields(); // Reset fields to ensure no old data persists
-            if (dialogMode === DialogModes.CREATE || !project) {
-                form.setFieldsValue(getInitialProject());
-            } else {
+            if ((dialogMode === DialogModes.UPDATE || dialogMode === DialogModes.READ) && project) {
                 form.setFieldsValue(project);
+            } else {
+                form.setFieldsValue(getInitialProject());
             }
         }
     }, [dialogOpen, dialogMode, project, form]);

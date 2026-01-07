@@ -83,6 +83,8 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
         return titles[mode] || "";
     };
 
+    const disabled = dialogMode === DialogModes.DELETE || dialogMode === DialogModes.READ || loading;
+
     return (
         <Modal
             title={getTitle(dialogMode)}
@@ -90,9 +92,10 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
             onOk={onOk}
             onCancel={() => handleClose()}
             confirmLoading={loading}
-            okText={t("Guardar")}
+            okText={dialogMode === DialogModes.DELETE ? t("Eliminar") : t("Guardar")}
             cancelText={t("Cancelar")}
             okButtonProps={{
+                danger: dialogMode === DialogModes.DELETE,
                 style: { display: dialogMode === DialogModes.READ ? 'none' : 'inline-block' }
             }}
         >
@@ -117,6 +120,7 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
                             label: `${p.code} - ${p.title}`,
                             value: p.id
                         }))}
+                        disabled={disabled}
                     />
                 </Form.Item>
 
@@ -126,7 +130,10 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
                     name="code"
                     rules={[{ required: true, message: t("El código es obligatorio") }]}
                 >
-                    <Input placeholder="BG-001" />
+                    <Input
+                        placeholder="BG-001"
+                        disabled={disabled}
+                    />
                 </Form.Item>
 
                 {/* Nombre del Presupuesto */}
@@ -135,7 +142,10 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
                     name="name"
                     rules={[{ required: true, message: t("El nombre es obligatorio") }]}
                 >
-                    <Input placeholder={t("Ej: Presupuesto ejecución material")} />
+                    <Input
+                        placeholder={t("Ej: Presupuesto ejecución material")}
+                        disabled={disabled}
+                    />
                 </Form.Item>
 
                 <div style={{ display: 'flex', gap: '16px' }}>
@@ -145,7 +155,11 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
                         name="version_number"
                         style={{ flex: 1 }}
                     >
-                        <InputNumber min={1} style={{ width: '100%' }} />
+                        <InputNumber
+                            min={1}
+                            style={{ width: '100%' }}
+                            disabled={disabled}
+                        />
                     </Form.Item>
 
                     {/* Estado del Presupuesto (Enum) */}
@@ -159,6 +173,7 @@ const BudgetDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, bu
                                 label: t(status.charAt(0).toUpperCase() + status.slice(1)),
                                 value: status
                             }))}
+                            disabled={disabled}
                         />
                     </Form.Item>
                 </div>
