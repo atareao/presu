@@ -114,114 +114,87 @@ Una vez que todo esté en marcha, la aplicación frontend debería ser accesible
 
 A continuación se muestra un diagrama de Entidad-Relación que representa la estructura de la base de datos.
 
-```
+```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#f9f9f9',
+    'primaryTextColor': '#333',
+    'primaryBorderColor': '#2b6cb0',
+    'lineColor': '#4a5568',
+    'secondaryColor': '#edf2f7',
+    'tertiaryColor': '#fff'
+  }
+}}%%
+
 erDiagram
-    %% ----------------------------------------------------
-    %% ENTITIES: DEFINICIÓN DE LAS TABLAS CON CLAVES Y CAMPOS CRÍTICOS
-    %% ----------------------------------------------------
-    roles {
-        int id PK
-        varchar name
-    }
+    %% --- SECCIÓN DE PROYECTO Y PRESUPUESTO ---
+    PROJECTS ||--o{ BUDGETS : "gestiona"
+    BUDGETS ||--o{ ELEMENTS : "contiene"
     
-    users {
+    %% --- SECCIÓN DE ESTRUCTURA Y MEDICIÓN ---
+    ELEMENTS ||--o{ ELEMENTS : "jerarquía (parent_id)"
+    ELEMENTS ||--o{ MEASUREMENTS : "tiene"
+    PRICES ||--o{ MEASUREMENTS : "valoriza"
+    
+    %% --- SECCIÓN DE PRECIOS Y VERSIONES ---
+    VERSIONS ||--o{ ELEMENTS : "versiona"
+    VERSIONS ||--o{ PRICES : "versiona"
+    UNITS ||--o{ PRICES : "mide"
+    
+    %% --- SECCIÓN DE DESCOMPOSICIONES ---
+    PRICES ||--o{ DESCOMPOSITIONS : "es padre"
+    PRICES ||--o{ DESCOMPOSITIONS : "es componente"
+
+    %% --- SECCIÓN DE SEGURIDAD ---
+    ROLES ||--o{ USERS : "define"
+
+    PROJECTS {
         int id PK
-        int role_id FK
-        varchar username
-        varchar email
-        varchar hashed_password
-        boolean is_active
+        string code "UK"
+        string title
     }
 
-    versions {
+    BUDGETS {
         int id PK
-        varchar name
+        int project_id FK
+        string code "UK"
+        int version_number
+        string status "Enum"
     }
-    
-    units {
+
+    ELEMENTS {
         int id PK
-        varchar name
-        varchar description
-        text base_formula
-        jsonb expected_params_json
+        int parent_id FK "Recursivo"
+        string code "UK"
+        string element_type "Enum"
     }
-    
-    projects {
+
+    PRICES {
         int id PK
-        int base_version_id FK
-        varchar code
-        varchar title
-    }
-    
-    prices {
-        int id PK
-        int version_id FK "Catálogo de precios"
         int unit_id FK
-        varchar code
-        text description
         numeric base_price
-        price_type_enum price_type
+        string price_type "Enum"
     }
-    
-    decompositions {
+
+    DESCOMPOSITIONS {
         int id PK
         int parent_price_id FK
         int component_price_id FK
-        calculation_mode_enum calculation_mode
-        numeric fixed_quantity
+        string calculation_mode "Enum"
         jsonb params_json
     }
-    
-    budget_versions {
+
+    UNITS {
         int id PK
-        int project_id FK
-        varchar code
-        int version_number
-        varchar name
-        budget_status_enum status
+        string symbol
+        text formula
     }
-    
-    elements {
-        int id PK
-        int budget_id FK
-        int parent_id FK "Jerarquía Recursiva"
-        int version_id FK "Override de catálogo"
-        element_type_enum element_type
-        varchar code
-        varchar budget_code
-        text description
-    }
-    
-    measurements {
+
+    MEASUREMENTS {
         int id PK
         int element_id FK
         int price_id FK
-        jsonb params_json
-        text measurement_text
         numeric measured_quantity
     }
-    
-    %% ----------------------------------------------------
-    %% RELATIONSHIPS: DEFINICIÓN DE LAS RELACIONES (FKs)
-    %% ----------------------------------------------------
-    
-    %% AUTORIZACIÓN
-    roles ||--o{ users : has
-    
-    %% ESTRUCTURA DEL PROYECTO
-    projects ||--o{ budget_versions : has
-    budget_versions ||--o{ elements : contains
-    elements ||--o{ elements : has_parent
-    elements ||--o{ measurements : has_detail
-
-    %% CATÁLOGO DE PRECIOS
-    versions ||--o{ projects : default_version_is
-    versions ||--o{ prices : is_version_of
-    versions ||--o{ elements : uses_catalog_version
-    units ||--o{ prices : uses_unit
-
-    %% LÓGICA DE CÁLCULO
-    prices ||--o{ decompositions : is_decomposed_by "parent_price_id"
-    prices ||--o{ decompositions : contains_component "component_price_id"
-    prices ||--o{ measurements : provides_cost "price_id"
 ```
