@@ -2,8 +2,8 @@
 import React from 'react';
 import { Modal, Form, Input, InputNumber, Select, Button } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { Measurement, Element, Price } from '@/models';
-import { measurementService, elementService, priceService } from '@/services';
+import type { Measurement, Element, Price } from '@/models';
+import { elementService, priceService } from '@/services';
 
 interface MeasurementDialogProps {
   visible: boolean;

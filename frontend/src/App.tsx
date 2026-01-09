@@ -24,10 +24,12 @@ const RegisterPage = lazy(() => import('@/pages/public/RegisterPage'));
 /** Admin **/
 const LogoutPage = lazy(() => import('@/pages/admin/LogoutPage'));
 const AdminHomePage = lazy(() => import('@/pages/admin/AdminHomePage'));
-const ProjectsPage = lazy(() => import('@/pages/admin/ProjectsPage'));
+const ProjectListPage = lazy(() => import('@/pages/admin/ProjectListPage'));
 const BudgetsPage = lazy(() => import('@/pages/admin/BudgetsPage'));
 const RolesPage = lazy(() => import('@/pages/admin/RolesPage'));
 const UsersPage = lazy(() => import('@/pages/admin/UsersPage'));
+const VersionListPage = lazy(() => import('@/pages/admin/VersionListPage'));
+const UnitListPage = lazy(() => import('@/pages/admin/UnitListPage'));
 
 // Inicialización de i18n
 i18n
@@ -83,10 +85,12 @@ const AppContent = () => {
                         <Route path="/admin" element={<AdminLayout />} >
                             <Route index element={<AdminHomePage />} />
                             <Route path="logout" element={<LogoutPage />} />
-                            <Route path="projects" element={<ProjectsPage />} />
+                            <Route path="projects" element={<ProjectListPage />} />
                             <Route path="budgets" element={<BudgetsPage />} />
                             <Route path="roles" element={<RolesPage />} />
                             <Route path="users" element={<UsersPage />} />
+                            <Route path="versions" element={<VersionListPage />} />
+                            <Route path="units" element={<UnitListPage />} />
                         </Route>                    </Routes>
                 </Suspense>
             </BrowserRouter>

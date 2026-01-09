@@ -8,7 +8,7 @@ export enum BudgetStatus {
 }
 
 export interface Budget {
-  id?: number;
+  id: number;
   project_id: number;
   code: string;
   version_number: number;

@@ -55,15 +55,6 @@ export default defineConfig({
             },
         },
     },
-    test: {
-        globals: true,
-        environment: 'jsdom',
-        setupFiles: './src/services/__tests__/setup.ts',
-        define: {
-            'import.meta.env.VITE_BASE_URL': JSON.stringify('http://localhost:3000'),
-        },
-        testTimeout: 10000, // Increased test timeout
-    },
     optimizeDeps: {
         exclude: ['react-router-dom'],
     },

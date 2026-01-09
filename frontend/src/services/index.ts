@@ -6,3 +6,5 @@ export * from './price.service.ts';
 export * from './project.service.ts';
 export * from './role.service.ts';
 export * from './user.service.ts';
+export * from './version.service.ts';
+export * from './unit.service.ts';

@@ -44,6 +44,18 @@ const MENU_ITEMS: CustomMenuItem[] = [
                 icon: <BookOutlined />,
                 navigateTo: "/admin/budgets",
             },
+            {
+                key: "sub-01-03",
+                label: "Versiones",
+                icon: <BookOutlined />,
+                navigateTo: "/admin/versions",
+            },
+            {
+                key: "sub-01-04",
+                label: "Unidades",
+                icon: <BookOutlined />,
+                navigateTo: "/admin/units",
+            },
         ]
     },
     {

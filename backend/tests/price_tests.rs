@@ -25,11 +25,12 @@ async fn setup() -> (PgPool, Version, Unit) {
 
     // Create a unit
     let name = format!("U-PRICE-{}", Uuid::new_v4().to_string().chars().take(2).collect::<String>());
+    let symbol = "ud".to_string();
     let new_unit = NewUnit {
         name: name.clone(),
+        symbol: symbol.clone(),
         description: Some("Test Unit for Price".to_string()),
-        base_formula: "a + b".to_string(),
-        expected_params_json: json!({"a": "number", "b": "number"}),
+        formula: "a + b".to_string(),
     };
     let unit = Unit::create(&pool, new_unit).await.unwrap();
 

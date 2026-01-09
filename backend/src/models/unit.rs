@@ -5,7 +5,6 @@ use sqlx::{
     Error, FromRow, Row,
     postgres::{PgPool, PgRow},
 };
-use serde_json::Value;
 use tracing::debug;
 use super::{
     Paginable,
@@ -23,9 +22,9 @@ use macros::axum_crud;
 pub struct Unit {
     pub id: i32,
     pub name: String,
+    pub symbol: String,
     pub description: Option<String>,
-    pub base_formula: String, 
-    pub expected_params_json: Value, 
+    pub formula: String, 
     pub created_at: UtcTimestamp,
     pub updated_at: UtcTimestamp,
 }
@@ -33,9 +32,9 @@ pub struct Unit {
 #[derive(Debug, Deserialize)]
 pub struct NewUnit {
     pub name: String,
+    pub symbol: String,
     pub description: Option<String>,
-    pub base_formula: String,
-    pub expected_params_json: Value,
+    pub formula: String,
 }
 
 #[derive(Debug, serde::Deserialize, macros::Paginable)]
@@ -43,7 +42,9 @@ pub struct UnitParams {
     pub id: Option<i32>,
 
     pub name: Option<String>,
-    pub description: Option<i32>,
+    pub symbol: Option<String>,
+    pub description: Option<String>,
+    pub formula: Option<String>,
 
     pub page: Option<u32>,
     pub limit: Option<u32>,
@@ -60,17 +61,17 @@ impl Unit {
     const INSERT_QUERY: &str = r#"
         (
             name,
+            symbol,
             description,
-            base_formula,
-            expected_params_json
+            formula,
         )
         VALUES ($1, $2, $3, $4)
     "#;
     const UPDATE_QUERY: &str = r#"
         name = $2,
-        description = $3,
-        base_formula = $4,
-        expected_params_json = $5
+        symbol = $3,
+        description = $4
+        formula = $5,
     "#;
 
     // =================================================================
@@ -135,9 +136,9 @@ impl Unit {
         debug!("Create: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
         .bind(item.name)
+        .bind(item.symbol)
         .bind(item.description)
-        .bind(item.base_formula)
-        .bind(item.expected_params_json)
+        .bind(item.formula)
         .fetch_one(pg_pool)
         .await
     }
@@ -152,9 +153,9 @@ impl Unit {
         sqlx::query_as::<_, Self>(&sql)
         .bind(item.id)
         .bind(item.name)
+        .bind(item.symbol)
         .bind(item.description)
-        .bind(item.base_formula)
-        .bind(item.expected_params_json)
+        .bind(item.formula)
         .fetch_one(pg_pool)
         .await
     }

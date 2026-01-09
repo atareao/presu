@@ -1,8 +1,8 @@
 // src/components/dialogs/ElementDialog.tsx
 import React from 'react';
-import { Modal, Form, Input, Select, Button, InputNumber } from 'antd';
+import { Modal, Form, Input, Select, Button } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { Element } from '@/models';
+import type { Element } from '@/models';
 
 interface ElementDialogProps {
   visible: boolean;

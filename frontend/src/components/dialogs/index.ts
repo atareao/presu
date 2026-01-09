@@ -6,3 +6,5 @@ export * from "./PriceDialog";
 export * from "./ProjectDialog";
 export * from "./RoleDialog";
 export * from "./UserDialog";
+export * from "./VersionDialog";
+export * from "./UnitDialog";

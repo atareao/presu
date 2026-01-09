@@ -5,6 +5,7 @@ import type { User } from '../user';
 describe('User Model', () => {
     it('should have the correct types for the User interface', () => {
         const user: User = {
+            id: -1,
             username: 'testuser',
             email: 'test@example.com',
             hashed_password: 'password',

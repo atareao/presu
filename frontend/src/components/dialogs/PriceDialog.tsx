@@ -2,8 +2,8 @@
 import React from 'react';
 import { Modal, Form, Input, InputNumber, Select, Button } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { Price, PriceType } from '@/models';
-import { priceService } from '@/services'; // Assuming priceService exists
+import type { Price } from '@/models';
+import { PriceType } from '@/models';
 
 // Placeholder for Unit type and service until they are implemented
 interface Unit { 

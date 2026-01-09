@@ -15,6 +15,7 @@ interface Props {
 }
 
 const getInitialBudget = (): Budget => ({
+    id: -1,
     project_id: 0,
     code: "",
     name: "",

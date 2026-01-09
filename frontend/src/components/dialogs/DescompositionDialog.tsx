@@ -2,7 +2,7 @@
 import React from 'react';
 import { Modal, Form, InputNumber, Select, Button } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { Descomposition } from '@/models';
+import type { Descomposition } from '@/models';
 
 interface DescompositionDialogProps {
   visible: boolean;

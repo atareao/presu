@@ -32,6 +32,7 @@ type Props<T extends { id: number | string }> = {
     fields: FieldDefinition<T>[];
     t: (key: string) => string;
     hasActions?: boolean;
+    loading?: boolean;
     // Ahora es obligatorio si hasActions es true, o puedes manejar el null
     dialogRenderer: (params: DialogRendererParams<T>) => React.ReactNode | null;
 } & Partial<ActionProps<T>>;
