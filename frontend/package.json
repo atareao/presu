@@ -57,7 +57,7 @@
         "i18next-cli": "^1.31.0",
         "i18next-scanner": "^4.6.0",
         "jsdom": "^27.4.0",
-        "lodash": "^4.17.21",
+        "lodash": "^4.17.23",
         "msw": "^2.12.7",
         "typescript": "~5.9.3",
         "typescript-eslint": "^8.48.1",
