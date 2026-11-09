@@ -10,7 +10,7 @@ export interface Descomposition {
   component_price_id: number;
   calculation_mode: CalculationMode;
   fixed_quantity?: number | null;
-  params_json?: Record<string, any> | null; // Mapeo de serde_json::Value
+  params_json?: Record<string, unknown> | null; // Mapeo de serde_json::Value
   created_at?: Date;
   updated_at?: Date;
 }

@@ -57,7 +57,8 @@ const ProjectDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, p
                 message.success(t("Proyecto eleminado con éxito"));
             } else {
                 // Llamada al servicio para crear
-                const { id, ...createValues } = values; // Destructure to ensure 'id' is not sent
+                const createValues = { ...values }; // Ensure 'id' is not sent
+                delete createValues.id;
                 result = await projectService.create(createValues);
                 message.success(t("Proyecto creado con éxito"));
             }

@@ -59,7 +59,8 @@ const UnitDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, unit
                 message.success(t("Unidad eleminada con éxito"));
             } else {
                 // Llamada al servicio para crear
-                const { id, ...createValues } = values; // Destructure to ensure 'id' is not sent
+                const createValues = { ...values }; // Ensure 'id' is not sent
+                delete createValues.id;
                 result = await unitService.create(createValues);
                 message.success(t("Unidad creada con éxito"));
             }

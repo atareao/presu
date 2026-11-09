@@ -1,5 +1,5 @@
 export interface Validation {
-    check: Function;
+    check: (...args: unknown[]) => unknown;
     msg: string;
 }
 
@@ -27,13 +27,15 @@ export interface FieldDefinition<T>{
     type: 'boolean' | 'number' | 'date' | 'string' | 'select' | null;
     value?: T[keyof T & string]; // Valor inicial de ese tipo
     customSorter?: (a: T, b: T) => number;
-    render?: (content: any, record: T ) => React.ReactNode; 
+    render?: {
+        bivarianceHack(content: unknown, record: T): React.ReactNode;
+    }['bivarianceHack']; 
     editable?: boolean;
     filterKey?: string;
     fixed?: 'left' | 'right';
     width?: number;
     sortKey?: string;
-    options?: { value: any; label: string }[];
+    options?: { value: string | number; label: string }[];
     required?: boolean;
 }
 
@@ -59,7 +61,7 @@ export interface PuntoPreemerMarker {
     type: string;
     latitude: number;
     longitude: number;
-    icon?: any;
+    icon?: unknown;
     name: string;
     description: string;
     address?: string;

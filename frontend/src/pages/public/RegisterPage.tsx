@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useCallback } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { Navigate } from "react-router";
 import { Flex, Card, Input, Button, Form, Alert, Typography, Spin } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
@@ -11,6 +11,13 @@ import { debounce } from "@/common/utils";
 import Logo from "@/assets/logo.svg";
 
 const { Title } = Typography;
+
+interface RegisterFormValues {
+    username: string;
+    email: string;
+    password: string;
+    confirm_password: string;
+}
 
 const RegisterPage: React.FC = () => {
     const { t } = useTranslation();
@@ -35,7 +42,7 @@ const RegisterPage: React.FC = () => {
                 } else {
                     setUsersCount(1); // Fallback to prevent registration if stats are down
                 }
-            } catch (error) {
+            } catch {
                 setUsersCount(1); // Fallback to prevent registration
             } finally {
                 setLoading(false);
@@ -44,13 +51,13 @@ const RegisterPage: React.FC = () => {
         fetchUsersCount();
     }, []);
 
+    const hideMessage = useMemo(() => debounce(() => {
+        setShowMessage(false);
+    }, 3000), []);
+
     if (isLoggedIn) {
         return <Navigate to={role === "admin" ? "/admin/" : "/"} replace />;
     }
-
-    const hideMessage = useCallback(debounce(() => {
-        setShowMessage(false);
-    }, 3000), []);
 
     const displayMessage = (text: string, type: 'success' | 'error' | 'info' | 'warning') => {
         setShowMessage(true);
@@ -59,7 +66,7 @@ const RegisterPage: React.FC = () => {
         hideMessage();
     };
 
-    const onFinish = async (values: any) => {
+    const onFinish = async (values: RegisterFormValues) => {
         if (values.password !== values.confirm_password) {
             displayMessage(t("Las contraseñas no coinciden"), 'error');
             return;
@@ -88,7 +95,7 @@ const RegisterPage: React.FC = () => {
             } else {
                 displayMessage(responseJson.message || t("Error en el registro"), 'error');
             }
-        } catch (error) {
+        } catch {
             displayMessage(t("Error de conexión con el servidor"), 'error');
         } finally {
             setSubmitting(false);
