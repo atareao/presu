@@ -34,3 +34,6 @@ backend/migrations/20260319060328_users.down.sql
 backend/migrations/20260319060328_users.up.sql
 config/
 .gemini
+
+# Trackear el lockfile del backend para builds reproducibles (--locked)
+!backend/Cargo.lock
