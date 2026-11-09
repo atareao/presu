@@ -6,7 +6,7 @@ use backend::models::{
     version::{NewVersion, Version},
 };
 use num_traits::cast::FromPrimitive;
-use rand::Rng;
+use rand::RngExt;
 use serde_json::json;
 use sqlx::PgPool;
 use sqlx::types::BigDecimal;
@@ -48,7 +48,7 @@ async fn setup() -> (PgPool, Price, Price) {
     };
     let unit = Unit::create(&pool, new_unit).await.unwrap();
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Create parent price
     let new_parent_price = NewPrice {
@@ -62,7 +62,7 @@ async fn setup() -> (PgPool, Price, Price) {
                 .collect::<String>()
         ),
         description: "Parent Price".to_string(),
-        base_price: BigDecimal::from_f64(rng.gen_range(100.0..200.0)).unwrap(),
+        base_price: BigDecimal::from_f64(rng.random_range(100.0..200.0)).unwrap(),
         unit_id: unit.id,
         price_type: PriceType::Base,
     };
@@ -80,7 +80,7 @@ async fn setup() -> (PgPool, Price, Price) {
                 .collect::<String>()
         ),
         description: "Component Price".to_string(),
-        base_price: BigDecimal::from_f64(rng.gen_range(10.0..50.0)).unwrap(),
+        base_price: BigDecimal::from_f64(rng.random_range(10.0..50.0)).unwrap(),
         unit_id: unit.id,
         price_type: PriceType::Base,
     };
@@ -203,7 +203,7 @@ async fn test_list_descompositions() {
         .await
         .unwrap()
         .unwrap();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let new_component_price2 = NewPrice {
         version_id: version.id,
         code: format!(
@@ -215,7 +215,7 @@ async fn test_list_descompositions() {
                 .collect::<String>()
         ),
         description: "Component Price 2".to_string(),
-        base_price: BigDecimal::from_f64(rng.gen_range(10.0..50.0)).unwrap(),
+        base_price: BigDecimal::from_f64(rng.random_range(10.0..50.0)).unwrap(),
         unit_id: unit.id,
         price_type: PriceType::Base,
     };
