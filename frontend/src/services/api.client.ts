@@ -11,20 +11,20 @@ async function handleResponse(response: Response) {
 export const apiClient = {
     get: (endpoint: string) => fetch(`${BASE_URL}${endpoint}`).then(handleResponse),
 
-    post: (endpoint: string, data: any) => fetch(`${BASE_URL}${endpoint}`, {
+    post: (endpoint: string, data: unknown) => fetch(`${BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     }).then(handleResponse),
 
-    patch: (endpoint: string, data: any) =>
+    patch: (endpoint: string, data: unknown) =>
         fetch(`${BASE_URL}${endpoint}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         }).then(handleResponse),
 
-    delete: (endpoint: string, data: any) => 
+    delete: (endpoint: string, data: { id?: number | string }) => 
         fetch(`${BASE_URL}${endpoint}?id=${data.id}`, {
         method: 'DELETE'
     }).then(handleResponse),

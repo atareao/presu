@@ -95,14 +95,14 @@ const AdminLayout: React.FC = () => {
         let foundKey: string[] = [];
         let foundOpenKeys: string[] = [];
 
-        const findMatch = (items: any[], parentKeys: string[] = []) => {
+        const findMatch = (items: CustomMenuItem[], parentKeys: string[] = []) => {
             for (const item of items) {
                 if (item.navigateTo && currentPath.startsWith(item.navigateTo)) {
-                    foundKey = [item.key];
+                    foundKey = [String(item.key)];
                     foundOpenKeys = parentKeys;
                 }
                 if (item.children) {
-                    findMatch(item.children, [...parentKeys, item.key]);
+                    findMatch(item.children, [...parentKeys, String(item.key)]);
                 }
             }
         };
@@ -169,8 +169,9 @@ const AdminLayout: React.FC = () => {
                     openKeys={openKeys}
                     onOpenChange={setOpenKeys}
                     items={MENU_ITEMS}
-                    onClick={({ item }: any) => {
-                        if (item.props.navigateTo) navigate(item.props.navigateTo);
+                    onClick={({ item }) => {
+                        const itemProps = (item as unknown as { props?: { navigateTo?: string } }).props;
+                        if (itemProps?.navigateTo) navigate(itemProps.navigateTo);
                     }}
                 />
             </Sider>

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useCallback } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { Navigate } from "react-router";
 import { Flex, Card, Input, Button, Form, Alert, Typography, Spin } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
@@ -11,6 +11,11 @@ import Logo from "@/assets/logo.svg";
 
 const { Title } = Typography;
 
+interface LoginFormValues {
+    email: string;
+    password: string;
+}
+
 const LoginPage: React.FC = () => {
     const { t } = useTranslation();
     const { isLoggedIn, role, login: authLogin } = useContext(AuthContext);
@@ -22,7 +27,7 @@ const LoginPage: React.FC = () => {
     const [usersCount, setUsersCount] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const hideMessage = useCallback(debounce(() => {
+    const hideMessage = useMemo(() => debounce(() => {
         setShowMessage(false);
     }, 3000), []);
 
@@ -38,7 +43,7 @@ const LoginPage: React.FC = () => {
                 } else {
                     setUsersCount(0);
                 }
-            } catch (error) {
+            } catch {
                 setUsersCount(0);
             } finally {
                 setLoading(false);
@@ -55,7 +60,7 @@ const LoginPage: React.FC = () => {
     };
 
 
-    const onFinish = async (values: any) => {
+    const onFinish = async (values: LoginFormValues) => {
         setLoading(true);
 
         try {
@@ -73,7 +78,7 @@ const LoginPage: React.FC = () => {
             } else {
                 displayMessage(responseJson.message || t("Error al iniciar sesión"), 'error');
             }
-        } catch (error) {
+        } catch {
             displayMessage(t("Error de conexión con el servidor"), 'error');
         } finally {
             setLoading(false);

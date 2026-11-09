@@ -56,7 +56,8 @@ const VersionDialog: React.FC<Props> = ({ dialogOpen, handleClose, dialogMode, v
                 message.success(t("Versión eleminada con éxito"));
             } else {
                 // Llamada al servicio para crear
-                const { id, ...createValues } = values; // Destructure to ensure 'id' is not sent
+                const createValues = { ...values }; // Ensure 'id' is not sent
+                delete createValues.id;
                 result = await versionService.create(createValues);
                 message.success(t("Versión creada con éxito"));
             }

@@ -9,7 +9,7 @@ export const budgetService = {
      * Recupera todos los presupuestos.
      * Soporta los parámetros de paginación y filtrado definidos en BudgetParams de Rust.
      */
-    readAll: (params?: Record<string, any>): Promise<Budget[]> => {
+    readAll: (params?: Record<string, string>): Promise<Budget[]> => {
         // Si hay parámetros (page, limit, status...), los añadimos a la URL
         const query = params ? `?${new URLSearchParams(params).toString()}` : "";
         return apiClient.get(`${ENDPOINT}${query}`);

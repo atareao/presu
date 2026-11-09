@@ -37,12 +37,12 @@ type Props<T extends { id: number | string }> = {
     dialogRenderer: (params: DialogRendererParams<T>) => React.ReactNode | null;
 } & Partial<ActionProps<T>>;
 
-const getNestedValue = (obj: any, path: string): any => {
+const getNestedValue = (obj: unknown, path: string): unknown => {
     const pathParts = path.split('.');
-    let current = obj;
+    let current: unknown = obj;
     for (const part of pathParts) {
         if (current && typeof current === 'object' && part in current) {
-            current = current[part];
+            current = (current as Record<string, unknown>)[part];
         } else {
             return undefined;
         }
@@ -59,8 +59,9 @@ const CustomTable = <T extends { id: number | string }>(props: Props<T>) => {
     const [items, setItems] = useState<T[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [pagination, setPagination] = useState<TablePaginationConfig>({ current: 1, pageSize: 9, total: 0 });
-    const [sortField, setSortField] = useState<SorterResult<any>['field']>(undefined);
-    const [sortOrder, setSortOrder] = useState<SorterResult<any>['order']>(undefined);
+    const { current: page, pageSize } = pagination;
+    const [sortField, setSortField] = useState<SorterResult<T>['field']>(undefined);
+    const [sortOrder, setSortOrder] = useState<SorterResult<T>['order']>(undefined);
     const [selectedItem, setSelectedItem] = useState<T | undefined>(undefined);
     const [dialogMode, setDialogMode] = useState<DialogMode>(DialogModes.NONE);
     
@@ -70,15 +71,15 @@ const CustomTable = <T extends { id: number | string }>(props: Props<T>) => {
         return initialFilters;
     });
 
-    const handleEdit = (item: T) => {
+    const handleEdit = useCallback((item: T) => {
         setSelectedItem(item);
         setDialogMode(DialogModes.UPDATE);
-    };
+    }, []);
 
-    const handleDelete = (item: T) => {
+    const handleDelete = useCallback((item: T) => {
         setSelectedItem(item);
         setDialogMode(DialogModes.DELETE);
-    };
+    }, []);
 
     const handleCreate = () => {
         setSelectedItem(undefined);
@@ -109,8 +110,8 @@ const CustomTable = <T extends { id: number | string }>(props: Props<T>) => {
         const sortByParam = sortField?.toString().trim() || 'created_at';
         
         const apiParams = new Map<string, string>([
-            ["page", pagination.current?.toString() || "1"],
-            ["limit", pagination.pageSize?.toString() || "10"],
+            ["page", page?.toString() || "1"],
+            ["limit", pageSize?.toString() || "10"],
             ["sort_by", sortByParam],
         ]);
 
@@ -138,7 +139,7 @@ const CustomTable = <T extends { id: number | string }>(props: Props<T>) => {
             }));
         }
         setLoading(false);
-    }, [fetchDataFunction, pagination.current, pagination.pageSize, sortField, sortOrder, filters, params, fields, dialogMode]);
+    }, [fetchDataFunction, page, pageSize, sortField, sortOrder, filters, params, fields, dialogMode]);
 
     useEffect(() => {
         fetchData();
@@ -175,19 +176,19 @@ const CustomTable = <T extends { id: number | string }>(props: Props<T>) => {
         const cols: TableColumnsType<T> = fields.map((field) => {
             const fieldKey = field.key.toString();
             
-            const defaultRender = (content: any) => {
+            const defaultRender = (content: unknown) => {
                 if (field.type === 'boolean') {
                     return content ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />;
                 }
-                return <Text>{content}</Text>;
+                return <Text>{content as React.ReactNode}</Text>;
             };
 
             const isNested = fieldKey.includes('.');
             let finalRender = field.render || defaultRender;
 
             if (isNested && !field.render) {
-                finalRender = (_: any, record: T) => {
-                    const value = getNestedValue(record, fieldKey);
+                finalRender = (_: unknown, record: T) => {
+                    const value = getNestedValue(record, fieldKey) as React.ReactNode;
                     if (field.type === 'boolean') {
                         return value ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />;
                     }
@@ -214,7 +215,7 @@ const CustomTable = <T extends { id: number | string }>(props: Props<T>) => {
                 sorter: field.type !== 'boolean',
                 ellipsis: true,
                 width: field.width || 100,
-                render: (content: any, record: T) => field.render ? field.render(content, record) : finalRender(content, record),
+                render: (content: unknown, record: T) => field.render ? field.render(content, record) : finalRender(content, record),
                 fixed: field.fixed || undefined,
             };
         });
@@ -230,7 +231,7 @@ const CustomTable = <T extends { id: number | string }>(props: Props<T>) => {
             });
         }
         return cols;
-    }, [fields, filters, t, hasActions, renderActionColumn, debouncedUpdateFilter]);
+    }, [fields, filters, t, hasActions, renderActionColumn, debouncedUpdateFilter, handleEdit, handleDelete]);
 
     const headerUI = hasActions && renderHeaderAction ? (
         renderHeaderAction(handleCreate)

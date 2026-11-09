@@ -25,7 +25,7 @@ const fetchStats = async (endpoint: string): Promise<Response<number>> => {
             let errorBody: { message?: string } = {};
             try {
                 errorBody = await response.json();
-            } catch (e) {
+            } catch {
                 // Ignore if cannot parse
             }
 

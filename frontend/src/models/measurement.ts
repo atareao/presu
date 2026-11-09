@@ -3,7 +3,7 @@ export interface Measurement {
   id?: number;
   element_id: number;
   price_id: number;
-  params_json: Record<string, any>;
+  params_json: Record<string, unknown>;
   measurement_text?: string | null;
   measured_quantity: number;
   created_at?: Date;
