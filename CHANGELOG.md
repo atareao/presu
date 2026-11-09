@@ -1,4 +1,9 @@
 # Changelog
+## [0.1.1] - 2026-11-09
+
+### Miscellaneous Tasks
+
+- *(release)* Evita que vampus aborte por ficheros no versionados
 ## [0.1.0] - 2026-11-09
 
 ### Bug Fixes
@@ -22,6 +27,7 @@
 - *(frontend)* Fija pnpm@12.15.0 en packageManager
 - Añade workflow de release automático (version + changelog + tag)
 - *(release)* Evita SIGPIPE en la detección de bump
+- Release v0.1.0
 
 ### Refactor
 
