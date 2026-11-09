@@ -36,7 +36,7 @@ jobs:
           tool: git-cliff
 
       - name: Install vampus
-        run: cargo install vampus --git https://github.com/atareao/vampus
+        run: cargo install vampus --version 0.4.6 --locked
 
       - name: Determine bump type from commits
         id: bump
@@ -57,22 +57,30 @@ jobs:
           fi
 
       - name: Bump version with vampus
-        run: vampus upgrade ${{ steps.bump.outputs.type }}
-
-      - name: Read new version
-        id: version
+        id: bump_version
         run: |
           set -euo pipefail
-          version="$(grep '^current_version' .vampus.yml | sed 's/.*: *//')"
-          echo "value=${version}" >> "$GITHUB_OUTPUT"
+          before="$(sed -n 's/^current_version: *//p' .vampus.yml)"
+          vampus upgrade ${{ steps.bump.outputs.type }} 2>&1 | tee /tmp/vampus.log
+          after="$(sed -n 's/^current_version: *//p' .vampus.yml)"
+          # vampus sale con código 0 aunque aborte (p. ej. si un fichero de
+          # `replaces` no existe, como pasó con el gitignored frontend/.env).
+          # Detectamos el no-op comparando la versión antes y después.
+          if [ "${after}" = "${before}" ]; then
+            echo "::error::vampus no modificó la versión (sigue en ${before}); revisa .vampus.yml"
+            cat /tmp/vampus.log
+            exit 1
+          fi
+          echo "previous=${before}" >> "$GITHUB_OUTPUT"
+          echo "value=${after}" >> "$GITHUB_OUTPUT"
 
       - name: Generate changelog
-        run: git-cliff -o CHANGELOG.md --tag "v${{ steps.version.outputs.value }}"
+        run: git-cliff -o CHANGELOG.md --tag "v${{ steps.bump_version.outputs.value }}"
 
       - name: Commit, tag and push
         run: |
           set -euo pipefail
-          version="${{ steps.version.outputs.value }}"
+          version="${{ steps.bump_version.outputs.value }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
