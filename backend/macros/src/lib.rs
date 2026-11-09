@@ -1,5 +1,5 @@
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, DeriveInput, ItemStruct};
+use syn::{DeriveInput, ItemStruct, parse_macro_input};
 
 // Importamos los módulos donde pondremos la lógica
 mod crud;

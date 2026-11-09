@@ -1,21 +1,13 @@
+use super::{Filterable, Paginable, UtcTimestamp};
+use macros::axum_crud;
 use serde::{Deserialize, Serialize};
 use sqlx::{
-    self,
-    Type,
-    Postgres,
-    QueryBuilder,
-    Error, FromRow, Row,
+    self, Error, FromRow, Postgres, QueryBuilder, Row, Type,
     postgres::{PgPool, PgRow},
     types::BigDecimal,
 };
-use tracing::debug;
-use super::{
-    Paginable,
-    Filterable,
-    UtcTimestamp,
-};
-use macros::axum_crud;
 use std::fmt;
+use tracing::debug;
 
 // =================================================================
 // 1. ESTRUCTURAS DE DATOS (STRUCTS)
@@ -57,7 +49,7 @@ pub struct Price {
     pub code: String,
     pub description: String,
     pub base_price: BigDecimal, // NUMERIC(10, 2)
-    pub unit_id: i32, 
+    pub unit_id: i32,
     // Mapeamos el ENUM price_type_enum a String
     pub price_type: PriceType,
     pub created_at: UtcTimestamp,
@@ -129,24 +121,30 @@ impl Price {
             .await
     }
 
-    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error>{
+    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error> {
         let sql = format!("SELECT * FROM {}", Self::TABLE);
         debug!("Read all: {}", &sql);
-        sqlx::query_as::<_, Self>(&sql)
-            .fetch_all(pg_pool)
-            .await
+        sqlx::query_as::<_, Self>(&sql).fetch_all(pg_pool).await
     }
 
     pub async fn count_paged(pool: &PgPool, params: &PriceParams) -> Result<i64, Error> {
         let sql = format!("SELECT COUNT(*) FROM {} WHERE 1=1", Self::TABLE);
         debug!("Count paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
-        params.version_id.append_filter(&mut query_builder, "version_id");
+        params
+            .version_id
+            .append_filter(&mut query_builder, "version_id");
         params.code.append_filter(&mut query_builder, "code");
-        params.description.append_filter(&mut query_builder, "description");
-        params.base_price.append_filter(&mut query_builder, "base_price");
+        params
+            .description
+            .append_filter(&mut query_builder, "description");
+        params
+            .base_price
+            .append_filter(&mut query_builder, "base_price");
         params.unit_id.append_filter(&mut query_builder, "unit_id");
-        params.price_type.append_filter(&mut query_builder, "price_type");
+        params
+            .price_type
+            .append_filter(&mut query_builder, "price_type");
         query_builder
             .build()
             .map(|row: PgRow| row.get::<i64, _>(0))
@@ -158,24 +156,33 @@ impl Price {
         let sql = format!("SELECT * FROM {} WHERE 1=1", Self::TABLE);
         debug!("Read paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
-        params.version_id.append_filter(&mut query_builder, "version_id");
+        params
+            .version_id
+            .append_filter(&mut query_builder, "version_id");
         params.code.append_filter(&mut query_builder, "code");
-        params.description.append_filter(&mut query_builder, "description");
-        params.base_price.append_filter(&mut query_builder, "base_price");
+        params
+            .description
+            .append_filter(&mut query_builder, "description");
+        params
+            .base_price
+            .append_filter(&mut query_builder, "base_price");
         params.unit_id.append_filter(&mut query_builder, "unit_id");
-        params.price_type.append_filter(&mut query_builder, "price_type");
+        params
+            .price_type
+            .append_filter(&mut query_builder, "price_type");
         if let Some(sort_by) = &params.sort_by {
             query_builder.push(format!(" ORDER BY {} ", sort_by));
-            query_builder.push(if params.asc.unwrap_or(true) { "ASC" } else { "DESC" });
+            query_builder.push(if params.asc.unwrap_or(true) {
+                "ASC"
+            } else {
+                "DESC"
+            });
         }
         query_builder.push(" LIMIT ");
         query_builder.push_bind(params.limit_or_default());
         query_builder.push(" OFFSET ");
         query_builder.push_bind(params.offset());
-        query_builder
-            .build_query_as::<Self>()
-            .fetch_all(pool)
-            .await
+        query_builder.build_query_as::<Self>().fetch_all(pool).await
     }
 
     // =================================================================
@@ -183,17 +190,21 @@ impl Price {
     // =================================================================
     /// Inserta un nuevo registro en la base de datos y devuelve el objeto creado.
     pub async fn create(pg_pool: &PgPool, item: NewPrice) -> Result<Self, Error> {
-        let sql = format!("INSERT INTO {} {} RETURNING *", Self::TABLE, Self::INSERT_QUERY);
+        let sql = format!(
+            "INSERT INTO {} {} RETURNING *",
+            Self::TABLE,
+            Self::INSERT_QUERY
+        );
         debug!("Create: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.version_id)
-        .bind(item.code)
-        .bind(item.description)
-        .bind(item.base_price)
-        .bind(item.unit_id)
-        .bind(item.price_type)
-        .fetch_one(pg_pool)
-        .await
+            .bind(item.version_id)
+            .bind(item.code)
+            .bind(item.description)
+            .bind(item.base_price)
+            .bind(item.unit_id)
+            .bind(item.price_type)
+            .fetch_one(pg_pool)
+            .await
     }
 
     // =================================================================
@@ -201,18 +212,22 @@ impl Price {
     // =================================================================
     /// Actualiza un registro por ID y devuelve el objeto actualizado.
     pub async fn update(pg_pool: &PgPool, item: Self) -> Result<Self, Error> {
-        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING *", Self::TABLE, Self::UPDATE_QUERY);
+        let sql = format!(
+            "UPDATE {} SET {} WHERE id = $1 RETURNING *",
+            Self::TABLE,
+            Self::UPDATE_QUERY
+        );
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.id)
-        .bind(item.version_id)
-        .bind(item.code)
-        .bind(item.description)
-        .bind(item.base_price)
-        .bind(item.unit_id)
-        .bind(item.price_type)
-        .fetch_one(pg_pool)
-        .await
+            .bind(item.id)
+            .bind(item.version_id)
+            .bind(item.code)
+            .bind(item.description)
+            .bind(item.base_price)
+            .bind(item.unit_id)
+            .bind(item.price_type)
+            .fetch_one(pg_pool)
+            .await
     }
 
     // =================================================================
@@ -232,7 +247,7 @@ impl Price {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sqlx::{Postgres, QueryBuilder, Execute};
+    use sqlx::{Execute, Postgres, QueryBuilder};
 
     #[test]
     fn test_price_type_display() {
@@ -242,10 +257,14 @@ mod tests {
 
     #[test]
     fn test_price_type_filterable() {
-        let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM prices WHERE 1=1");
+        let mut builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("SELECT * FROM prices WHERE 1=1");
         let price_type_filter = Some(PriceType::Base);
         price_type_filter.append_filter(&mut builder, "price_type");
         let query = builder.build();
-        assert_eq!(query.sql(), "SELECT * FROM prices WHERE 1=1 AND price_type LIKE $1");
+        assert_eq!(
+            query.sql(),
+            "SELECT * FROM prices WHERE 1=1 AND price_type LIKE $1"
+        );
     }
 }

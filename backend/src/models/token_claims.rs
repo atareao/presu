@@ -7,4 +7,3 @@ pub struct TokenClaims {
     pub iat: usize,
     pub exp: usize,
 }
-

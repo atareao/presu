@@ -1,23 +1,21 @@
-
-use std::sync::Arc;
 use axum::{
     body::{self, Body},
     http::{Request, StatusCode},
 };
+use backend::http;
 use backend::models::{
-    user::{NewUser, User},
-    role::{NewRole, Role},
-    project::{NewProject, Project},
-    budget::{NewBudget, Budget},
     AppState,
+    budget::{Budget, NewBudget},
+    project::{NewProject, Project},
+    role::{NewRole, Role},
+    user::{NewUser, User},
 };
 use serde_json::Value;
+use sqlx::PgPool;
+use std::sync::Arc;
 use tower::ServiceExt;
 use uuid::Uuid;
-use sqlx::PgPool;
-use backend::http;
 
-#[path = "common.rs"]
 mod common;
 
 async fn setup() -> (PgPool, Role, User, Project) {
@@ -71,7 +69,9 @@ async fn test_count_projects() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::OK);
-    let body = body::to_bytes(response.into_body(), 1024 * 1024).await.unwrap();
+    let body = body::to_bytes(response.into_body(), 1024 * 1024)
+        .await
+        .unwrap();
     let body: Value = serde_json::from_slice(&body).unwrap();
     assert!(body["data"].as_i64().unwrap() >= 1);
 }
@@ -102,7 +102,9 @@ async fn test_count_budgets() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::OK);
-    let body = body::to_bytes(response.into_body(), 1024 * 1024).await.unwrap();
+    let body = body::to_bytes(response.into_body(), 1024 * 1024)
+        .await
+        .unwrap();
     let body: Value = serde_json::from_slice(&body).unwrap();
     assert!(body["data"].as_i64().unwrap() >= 1);
 }
@@ -124,7 +126,9 @@ async fn test_count_users() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::OK);
-    let body = body::to_bytes(response.into_body(), 1024 * 1024).await.unwrap();
+    let body = body::to_bytes(response.into_body(), 1024 * 1024)
+        .await
+        .unwrap();
     let body: Value = serde_json::from_slice(&body).unwrap();
     assert!(body["data"].as_i64().unwrap() >= 1);
 }

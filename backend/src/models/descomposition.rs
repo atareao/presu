@@ -1,22 +1,14 @@
+use super::{Filterable, Paginable, UtcTimestamp};
+use macros::axum_crud;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use sqlx::{
-    self,
-    Type,
-    Postgres,
-    QueryBuilder,
-    Error, FromRow, Row,
+    self, Error, FromRow, Postgres, QueryBuilder, Row, Type,
     postgres::{PgPool, PgRow},
     types::BigDecimal,
 };
-use tracing::debug;
-use super::{
-    Paginable,
-    Filterable,
-    UtcTimestamp,
-};
-use serde_json::Value;
-use macros::axum_crud;
 use std::fmt;
+use tracing::debug;
 
 // =================================================================
 // 1. ESTRUCTURAS DE DATOS (STRUCTS)
@@ -50,31 +42,34 @@ impl Filterable for Option<CalculationMode> {
     }
 }
 
-#[axum_crud(path = "/descompositions", new = "NewDescomposition", params = "DescompositionParams")]
+#[axum_crud(
+    path = "/descompositions",
+    new = "NewDescomposition",
+    params = "DescompositionParams"
+)]
 #[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct Descomposition {
     pub id: i32,
-    pub parent_price_id: i32, 
-    pub component_price_id: i32, 
+    pub parent_price_id: i32,
+    pub component_price_id: i32,
     pub calculation_mode: CalculationMode,
     // Cantidad fija (NULL si calculation_mode es 'formula')
     pub fixed_quantity: Option<BigDecimal>,
     // Parámetros JSON (NULL si calculation_mode es 'fixed')
-    pub params_json: Option<Value>, 
+    pub params_json: Option<Value>,
     pub created_at: UtcTimestamp,
     pub updated_at: UtcTimestamp,
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NewDescomposition {
-    pub parent_price_id: i32, 
-    pub component_price_id: i32, 
+    pub parent_price_id: i32,
+    pub component_price_id: i32,
     pub calculation_mode: CalculationMode,
     // Cantidad fija (NULL si calculation_mode es 'formula')
     pub fixed_quantity: Option<BigDecimal>,
     // Parámetros JSON (NULL si calculation_mode es 'fixed')
-    pub params_json: Option<Value>, 
+    pub params_json: Option<Value>,
 }
 
 #[derive(Debug, serde::Deserialize, macros::Paginable)]
@@ -127,21 +122,25 @@ impl Descomposition {
             .await
     }
 
-    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error>{
+    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error> {
         let sql = format!("SELECT * FROM {}", Self::TABLE);
         debug!("Read all: {}", &sql);
-        sqlx::query_as::<_, Self>(&sql)
-            .fetch_all(pg_pool)
-            .await
+        sqlx::query_as::<_, Self>(&sql).fetch_all(pg_pool).await
     }
 
     pub async fn count_paged(pool: &PgPool, params: &DescompositionParams) -> Result<i64, Error> {
         let sql = format!("SELECT COUNT(*) FROM {} WHERE 1=1", Self::TABLE);
         debug!("Count paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
-        params.parent_price_id.append_filter(&mut query_builder, "parent_price_id");
-        params.component_price_id.append_filter(&mut query_builder, "component_price_id");
-        params.calculation_mode.append_filter(&mut query_builder, "calculation_mode");
+        params
+            .parent_price_id
+            .append_filter(&mut query_builder, "parent_price_id");
+        params
+            .component_price_id
+            .append_filter(&mut query_builder, "component_price_id");
+        params
+            .calculation_mode
+            .append_filter(&mut query_builder, "calculation_mode");
         query_builder
             .build()
             .map(|row: PgRow| row.get::<i64, _>(0))
@@ -149,25 +148,35 @@ impl Descomposition {
             .await
     }
 
-    pub async fn read_paged(pool: &PgPool, params: &DescompositionParams) -> Result<Vec<Self>, Error> {
+    pub async fn read_paged(
+        pool: &PgPool,
+        params: &DescompositionParams,
+    ) -> Result<Vec<Self>, Error> {
         let sql = format!("SELECT * FROM {} WHERE 1=1", Self::TABLE);
         debug!("Read paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
-        params.parent_price_id.append_filter(&mut query_builder, "parent_price_id");
-        params.component_price_id.append_filter(&mut query_builder, "component_price_id");
-        params.calculation_mode.append_filter(&mut query_builder, "calculation_mode");
+        params
+            .parent_price_id
+            .append_filter(&mut query_builder, "parent_price_id");
+        params
+            .component_price_id
+            .append_filter(&mut query_builder, "component_price_id");
+        params
+            .calculation_mode
+            .append_filter(&mut query_builder, "calculation_mode");
         if let Some(sort_by) = &params.sort_by {
             query_builder.push(format!(" ORDER BY {} ", sort_by));
-            query_builder.push(if params.asc.unwrap_or(true) { "ASC" } else { "DESC" });
+            query_builder.push(if params.asc.unwrap_or(true) {
+                "ASC"
+            } else {
+                "DESC"
+            });
         }
         query_builder.push(" LIMIT ");
         query_builder.push_bind(params.limit_or_default());
         query_builder.push(" OFFSET ");
         query_builder.push_bind(params.offset());
-        query_builder
-            .build_query_as::<Self>()
-            .fetch_all(pool)
-            .await
+        query_builder.build_query_as::<Self>().fetch_all(pool).await
     }
 
     // =================================================================
@@ -175,16 +184,20 @@ impl Descomposition {
     // =================================================================
     /// Inserta un nuevo registro en la base de datos y devuelve el objeto creado.
     pub async fn create(pg_pool: &PgPool, item: NewDescomposition) -> Result<Self, Error> {
-        let sql = format!("INSERT INTO {} {} RETURNING *", Self::TABLE, Self::INSERT_QUERY);
+        let sql = format!(
+            "INSERT INTO {} {} RETURNING *",
+            Self::TABLE,
+            Self::INSERT_QUERY
+        );
         debug!("Create: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.parent_price_id)
-        .bind(item.component_price_id)
-        .bind(item.calculation_mode)
-        .bind(item.fixed_quantity)
-        .bind(item.params_json)
-        .fetch_one(pg_pool)
-        .await
+            .bind(item.parent_price_id)
+            .bind(item.component_price_id)
+            .bind(item.calculation_mode)
+            .bind(item.fixed_quantity)
+            .bind(item.params_json)
+            .fetch_one(pg_pool)
+            .await
     }
 
     // =================================================================
@@ -192,17 +205,21 @@ impl Descomposition {
     // =================================================================
     /// Actualiza un registro por ID y devuelve el objeto actualizado.
     pub async fn update(pg_pool: &PgPool, item: Self) -> Result<Self, Error> {
-        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING *", Self::TABLE, Self::UPDATE_QUERY);
+        let sql = format!(
+            "UPDATE {} SET {} WHERE id = $1 RETURNING *",
+            Self::TABLE,
+            Self::UPDATE_QUERY
+        );
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.id)
-        .bind(item.parent_price_id)
-        .bind(item.component_price_id)
-        .bind(item.calculation_mode)
-        .bind(item.fixed_quantity)
-        .bind(item.params_json)
-        .fetch_one(pg_pool)
-        .await
+            .bind(item.id)
+            .bind(item.parent_price_id)
+            .bind(item.component_price_id)
+            .bind(item.calculation_mode)
+            .bind(item.fixed_quantity)
+            .bind(item.params_json)
+            .fetch_one(pg_pool)
+            .await
     }
 
     // =================================================================
@@ -222,7 +239,7 @@ impl Descomposition {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sqlx::{Postgres, QueryBuilder, Execute};
+    use sqlx::{Execute, Postgres, QueryBuilder};
 
     #[test]
     fn test_calculation_mode_display() {
@@ -232,10 +249,14 @@ mod tests {
 
     #[test]
     fn test_calculation_mode_filterable() {
-        let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM descompositions WHERE 1=1");
+        let mut builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("SELECT * FROM descompositions WHERE 1=1");
         let calculation_mode_filter = Some(CalculationMode::Fixed);
         calculation_mode_filter.append_filter(&mut builder, "calculation_mode");
         let query = builder.build();
-        assert_eq!(query.sql(), "SELECT * FROM descompositions WHERE 1=1 AND calculation_mode LIKE $1");
+        assert_eq!(
+            query.sql(),
+            "SELECT * FROM descompositions WHERE 1=1 AND calculation_mode LIKE $1"
+        );
     }
 }

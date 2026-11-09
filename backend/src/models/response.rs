@@ -1,17 +1,11 @@
+use super::paginable::Paginable;
 use axum::{
-    http::{
-        StatusCode,
-        HeaderMap,
-    },
     Json,
     body::Body,
-    response::{
-        Response,
-        IntoResponse,
-    }
+    http::{HeaderMap, StatusCode},
+    response::{IntoResponse, Response},
 };
 use serde::{Deserialize, Serialize};
-use super::paginable::Paginable;
 
 use super::Data;
 
@@ -44,9 +38,7 @@ impl CustomResponse {
     }
 }
 
-
 pub type PdfResponse = (HeaderMap, Vec<u8>);
-
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ApiResponse {
@@ -142,7 +134,6 @@ impl Pagination {
     }
 }
 
-
 #[derive(Debug, Clone, Serialize)]
 pub struct PagedResponse {
     pub status: u16,
@@ -210,7 +201,10 @@ mod tests {
 
     #[test]
     fn test_pagination_new() {
-        let params = TestParams { page: Some(2), limit: Some(10) };
+        let params = TestParams {
+            page: Some(2),
+            limit: Some(10),
+        };
         let pagination = Pagination::new(&params, 100, "/test");
         assert_eq!(pagination.page, 2);
         assert_eq!(pagination.limit, 10);
@@ -222,7 +216,10 @@ mod tests {
 
     #[test]
     fn test_pagination_first_page() {
-        let params = TestParams { page: Some(1), limit: Some(10) };
+        let params = TestParams {
+            page: Some(1),
+            limit: Some(10),
+        };
         let pagination = Pagination::new(&params, 100, "/test");
         assert_eq!(pagination.prev, None);
         assert_eq!(pagination.next, Some("/test?page=2&limit=10".to_string()));
@@ -230,10 +227,12 @@ mod tests {
 
     #[test]
     fn test_pagination_last_page() {
-        let params = TestParams { page: Some(10), limit: Some(10) };
+        let params = TestParams {
+            page: Some(10),
+            limit: Some(10),
+        };
         let pagination = Pagination::new(&params, 100, "/test");
         assert_eq!(pagination.prev, Some("/test?page=9&limit=10".to_string()));
         assert_eq!(pagination.next, None);
     }
 }
-

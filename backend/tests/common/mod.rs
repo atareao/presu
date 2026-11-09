@@ -1,10 +1,7 @@
-use sqlx::{
-    postgres::PgPoolOptions,
-    PgPool,
-};
 use dotenv::dotenv;
-use std::env;
 use once_cell::sync::Lazy;
+use sqlx::{PgPool, migrate::Migrator, postgres::PgPoolOptions};
+use std::{env, path::Path};
 
 pub static TRACING: Lazy<()> = Lazy::new(|| {
     dotenv().ok();
@@ -17,9 +14,19 @@ pub static TRACING: Lazy<()> = Lazy::new(|| {
 pub async fn setup_pool() -> PgPool {
     dotenv().ok();
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgPoolOptions::new()
+    let pool = PgPoolOptions::new()
         .max_connections(1)
         .connect(&database_url)
         .await
-        .expect("Failed to create pool.")
+        .expect("Failed to create pool.");
+
+    let migrations = Path::new(env!("CARGO_MANIFEST_DIR")).join("migrations");
+    Migrator::new(migrations)
+        .await
+        .expect("Failed to load migrations")
+        .run(&pool)
+        .await
+        .expect("Failed to run migrations");
+
+    pool
 }

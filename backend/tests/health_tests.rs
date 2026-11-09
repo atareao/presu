@@ -1,15 +1,16 @@
 mod common;
 use axum::{
-    body::{to_bytes, Body},
+    body::{Body, to_bytes},
     http::{Request, StatusCode},
 };
-use tower::ServiceExt;
-use std::sync::Arc;
-use backend::models::{AppState, ApiResponse, Data};
 use backend::http::health;
+use backend::models::{ApiResponse, AppState, Data};
+use std::sync::Arc;
+use tower::ServiceExt;
 
 #[tokio::test]
 async fn test_check_health() {
+    let _ = &common::TRACING;
     let pool = common::setup_pool().await;
     let app_state = Arc::new(AppState {
         pool,

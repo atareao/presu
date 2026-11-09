@@ -1,19 +1,18 @@
 use backend::models::{
-    measurement::{Measurement, NewMeasurement, MeasurementParams},
-    element::{Element, NewElement, ElementType},
-    budget::{Budget, NewBudget, BudgetStatus},
-    project::{Project, NewProject},
-    version::{Version, NewVersion},
-    price::{Price, NewPrice, PriceType},
-    unit::{Unit, NewUnit},
+    budget::{Budget, BudgetStatus, NewBudget},
+    element::{Element, ElementType, NewElement},
+    measurement::{Measurement, MeasurementParams, NewMeasurement},
+    price::{NewPrice, Price, PriceType},
+    project::{NewProject, Project},
+    unit::{NewUnit, Unit},
+    version::{NewVersion, Version},
 };
+use num_traits::cast::FromPrimitive;
+use rand::Rng;
+use serde_json::json;
 use sqlx::{PgPool, types::BigDecimal};
 use uuid::Uuid;
-use serde_json::json;
-use rand::Rng;
-use num_traits::cast::FromPrimitive;
 
-#[path = "common.rs"]
 mod common;
 
 async fn setup() -> (PgPool, Budget, Version, Element, Price, Unit) {
@@ -22,7 +21,14 @@ async fn setup() -> (PgPool, Budget, Version, Element, Price, Unit) {
 
     // Create a project
     let new_project = NewProject {
-        code: format!("P-MEAS-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
+        code: format!(
+            "P-MEAS-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
         title: Some("Measurement Test Project".to_string()),
     };
     let project = Project::create(&pool, new_project).await.unwrap();
@@ -30,7 +36,14 @@ async fn setup() -> (PgPool, Budget, Version, Element, Price, Unit) {
     // Create a budget
     let new_budget = NewBudget {
         project_id: project.id,
-        code: format!("B-MEAS-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
+        code: format!(
+            "B-MEAS-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
         version_number: 1,
         name: "Measurement Test Budget".to_string(),
         status: BudgetStatus::Draft,
@@ -39,12 +52,26 @@ async fn setup() -> (PgPool, Budget, Version, Element, Price, Unit) {
 
     // Create a version
     let new_version = NewVersion {
-        name: format!("V-MEAS-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
+        name: format!(
+            "V-MEAS-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
     };
     let version = Version::create(&pool, new_version).await.unwrap();
 
     // Create a unit
-    let unit_name = format!("U-MEAS-{}", Uuid::new_v4().to_string().chars().take(3).collect::<String>());
+    let unit_name = format!(
+        "U-MEAS-{}",
+        Uuid::new_v4()
+            .to_string()
+            .chars()
+            .take(3)
+            .collect::<String>()
+    );
     let unit_symbol = "ud".to_string();
     let new_unit = NewUnit {
         name: unit_name.clone(),
@@ -58,7 +85,14 @@ async fn setup() -> (PgPool, Budget, Version, Element, Price, Unit) {
     let mut rng = rand::thread_rng();
     let new_price = NewPrice {
         version_id: version.id,
-        code: format!("PR-MEAS-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
+        code: format!(
+            "PR-MEAS-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
         description: "Test Price for Measurement".to_string(),
         base_price: BigDecimal::from_f64(rng.gen_range(100.0..200.0)).unwrap(),
         unit_id: unit.id,
@@ -72,8 +106,22 @@ async fn setup() -> (PgPool, Budget, Version, Element, Price, Unit) {
         parent_id: None,
         version_id: version.id,
         element_type: ElementType::Line,
-        code: format!("EL-MEAS-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
-        budget_code: format!("EL-BUD-MEAS-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
+        code: format!(
+            "EL-MEAS-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
+        budget_code: format!(
+            "EL-BUD-MEAS-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
         description: Some("Measurement Test Element".to_string()),
     };
     let element = Element::create(&pool, new_element).await.unwrap();
@@ -94,7 +142,10 @@ async fn test_create_measurement() {
     let measurement = Measurement::create(&pool, new_measurement).await.unwrap();
     assert_eq!(measurement.element_id, element.id);
     assert_eq!(measurement.price_id, price.id);
-    assert_eq!(measurement.measured_quantity, BigDecimal::from_f64(10.0).unwrap());
+    assert_eq!(
+        measurement.measured_quantity,
+        BigDecimal::from_f64(10.0).unwrap()
+    );
 }
 
 #[tokio::test]
@@ -108,11 +159,17 @@ async fn test_read_measurement() {
         measured_quantity: BigDecimal::from_f64(20.0).unwrap(),
     };
     let measurement = Measurement::create(&pool, new_measurement).await.unwrap();
-    let read_measurement = Measurement::read_by_id(&pool, measurement.id).await.unwrap().unwrap();
+    let read_measurement = Measurement::read_by_id(&pool, measurement.id)
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!(read_measurement.id, measurement.id);
     assert_eq!(read_measurement.element_id, element.id);
     assert_eq!(read_measurement.price_id, price.id);
-    assert_eq!(read_measurement.measured_quantity, BigDecimal::from_f64(20.0).unwrap());
+    assert_eq!(
+        read_measurement.measured_quantity,
+        BigDecimal::from_f64(20.0).unwrap()
+    );
 }
 
 #[tokio::test]
@@ -128,7 +185,10 @@ async fn test_update_measurement() {
     let mut measurement = Measurement::create(&pool, new_measurement).await.unwrap();
     measurement.measured_quantity = BigDecimal::from_f64(35.0).unwrap();
     let updated_measurement = Measurement::update(&pool, measurement).await.unwrap();
-    assert_eq!(updated_measurement.measured_quantity, BigDecimal::from_f64(35.0).unwrap());
+    assert_eq!(
+        updated_measurement.measured_quantity,
+        BigDecimal::from_f64(35.0).unwrap()
+    );
 }
 
 #[tokio::test]
@@ -144,7 +204,9 @@ async fn test_delete_measurement() {
     let measurement = Measurement::create(&pool, new_measurement).await.unwrap();
     let deleted_measurement = Measurement::delete(&pool, measurement.id).await.unwrap();
     assert_eq!(deleted_measurement.id, measurement.id);
-    let read_measurement = Measurement::read_by_id(&pool, measurement.id).await.unwrap();
+    let read_measurement = Measurement::read_by_id(&pool, measurement.id)
+        .await
+        .unwrap();
     assert!(read_measurement.is_none());
 }
 
