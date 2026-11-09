@@ -1,10 +1,7 @@
-use backend::models::{
-    unit::{Unit, NewUnit, UnitParams},
-};
+use backend::models::unit::{NewUnit, Unit, UnitParams};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-#[path = "common.rs"]
 mod common;
 
 async fn setup() -> PgPool {
@@ -15,7 +12,14 @@ async fn setup() -> PgPool {
 #[tokio::test]
 async fn test_create_unit() {
     let pool = setup().await;
-    let name = format!("U-{}", Uuid::new_v4().to_string().chars().take(8).collect::<String>());
+    let name = format!(
+        "U-{}",
+        Uuid::new_v4()
+            .to_string()
+            .chars()
+            .take(8)
+            .collect::<String>()
+    );
     let symbol = "ud".to_string();
     let new_unit = NewUnit {
         name: name.clone(),
@@ -33,7 +37,14 @@ async fn test_create_unit() {
 #[tokio::test]
 async fn test_read_unit() {
     let pool = setup().await;
-    let name = format!("U-{}", Uuid::new_v4().to_string().chars().take(8).collect::<String>());
+    let name = format!(
+        "U-{}",
+        Uuid::new_v4()
+            .to_string()
+            .chars()
+            .take(8)
+            .collect::<String>()
+    );
     let symbol = "ud".to_string();
     let new_unit = NewUnit {
         name: name.clone(),
@@ -53,7 +64,14 @@ async fn test_read_unit() {
 #[tokio::test]
 async fn test_update_unit() {
     let pool = setup().await;
-    let name = format!("U-{}", Uuid::new_v4().to_string().chars().take(8).collect::<String>());
+    let name = format!(
+        "U-{}",
+        Uuid::new_v4()
+            .to_string()
+            .chars()
+            .take(8)
+            .collect::<String>()
+    );
     let symbol = "ud".to_string();
     let new_unit = NewUnit {
         name: name.clone(),
@@ -71,7 +89,14 @@ async fn test_update_unit() {
 #[tokio::test]
 async fn test_delete_unit() {
     let pool = setup().await;
-    let name = format!("U-{}", Uuid::new_v4().to_string().chars().take(8).collect::<String>());
+    let name = format!(
+        "U-{}",
+        Uuid::new_v4()
+            .to_string()
+            .chars()
+            .take(8)
+            .collect::<String>()
+    );
     let symbol = "ud".to_string();
     let new_unit = NewUnit {
         name: name.clone(),
@@ -89,7 +114,14 @@ async fn test_delete_unit() {
 #[tokio::test]
 async fn test_list_units() {
     let pool = setup().await;
-    let name1 = format!("U-{}", Uuid::new_v4().to_string().chars().take(8).collect::<String>());
+    let name1 = format!(
+        "U-{}",
+        Uuid::new_v4()
+            .to_string()
+            .chars()
+            .take(8)
+            .collect::<String>()
+    );
     let symbol1 = "ud".to_string();
     let new_unit1 = NewUnit {
         name: name1,
@@ -99,7 +131,14 @@ async fn test_list_units() {
     };
     Unit::create(&pool, new_unit1).await.unwrap();
 
-    let name2 = format!("U-{}", Uuid::new_v4().to_string().chars().take(8).collect::<String>());
+    let name2 = format!(
+        "U-{}",
+        Uuid::new_v4()
+            .to_string()
+            .chars()
+            .take(8)
+            .collect::<String>()
+    );
     let symbol2 = "ud".to_string();
     let new_unit2 = NewUnit {
         name: name2,

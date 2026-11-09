@@ -1,11 +1,10 @@
 use backend::models::{
-    user::{User, NewUser, UserParams},
-    role::{Role, NewRole},
+    role::{NewRole, Role},
+    user::{NewUser, User, UserParams},
 };
 use sqlx::PgPool;
 use uuid::Uuid;
 
-#[path = "common.rs"]
 mod common;
 
 async fn setup() -> (PgPool, Role) {

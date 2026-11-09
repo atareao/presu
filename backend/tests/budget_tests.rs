@@ -1,12 +1,11 @@
 use backend::models::{
-    budget::{Budget, NewBudget, BudgetParams, BudgetStatus},
-    project::{Project, NewProject},
+    budget::{Budget, BudgetParams, BudgetStatus, NewBudget},
+    project::{NewProject, Project},
 };
+use rand::Rng;
 use sqlx::PgPool;
 use uuid::Uuid;
-use rand::Rng;
 
-#[path = "common.rs"]
 mod common;
 
 async fn setup() -> (PgPool, Project) {

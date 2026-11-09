@@ -1,20 +1,12 @@
+use super::{Filterable, Paginable, UtcTimestamp};
+use macros::axum_crud;
 use serde::{Deserialize, Serialize};
 use sqlx::{
-    self,
-    Type,
-    Postgres,
-    QueryBuilder,
-    Error, FromRow, Row,
+    self, Error, FromRow, Postgres, QueryBuilder, Row, Type,
     postgres::{PgPool, PgRow},
 };
-use tracing::debug;
-use super::{
-    Paginable,
-    Filterable,
-    UtcTimestamp,
-};
-use macros::axum_crud;
 use std::fmt;
+use tracing::debug;
 
 // =================================================================
 // 1. ESTRUCTURAS DE DATOS (STRUCTS)
@@ -54,8 +46,8 @@ pub struct Element {
     pub id: i32,
     pub budget_id: i32,
     // Option<i32> permite la clave recursiva (NULL para elementos raíz)
-    pub parent_id: Option<i32>, 
-    pub version_id: i32, 
+    pub parent_id: Option<i32>,
+    pub version_id: i32,
     // Mapeamos el ENUM element_enum a String
     pub element_type: ElementType,
     pub code: String,
@@ -71,10 +63,10 @@ pub struct Element {
 pub struct NewElement {
     pub budget_id: i32,
     // Option<i32> permite la clave recursiva (NULL para elementos raíz)
-    pub parent_id: Option<i32>, 
-    pub version_id: i32, 
+    pub parent_id: Option<i32>,
+    pub version_id: i32,
     // Mapeamos el ENUM element_enum a String
-    pub element_type: ElementType, 
+    pub element_type: ElementType,
     pub code: String,
     pub budget_code: String,
     pub description: Option<String>,
@@ -137,24 +129,32 @@ impl Element {
             .await
     }
 
-    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error>{
+    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error> {
         let sql = format!("SELECT * FROM {}", Self::TABLE);
         debug!("Read all: {}", &sql);
-        sqlx::query_as::<_, Self>(&sql)
-            .fetch_all(pg_pool)
-            .await
+        sqlx::query_as::<_, Self>(&sql).fetch_all(pg_pool).await
     }
 
     pub async fn count_paged(pool: &PgPool, params: &ElementParams) -> Result<i64, Error> {
         let sql = format!("SELECT COUNT(*) FROM {} WHERE 1=1", Self::TABLE);
         debug!("Count paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
-        params.parent_id.append_filter(&mut query_builder, "parent_id");
-        params.version_id.append_filter(&mut query_builder, "version_id");
-        params.element_type.append_filter(&mut query_builder, "element_type");
+        params
+            .parent_id
+            .append_filter(&mut query_builder, "parent_id");
+        params
+            .version_id
+            .append_filter(&mut query_builder, "version_id");
+        params
+            .element_type
+            .append_filter(&mut query_builder, "element_type");
         params.code.append_filter(&mut query_builder, "code");
-        params.budget_code.append_filter(&mut query_builder, "budget_code");
-        params.description.append_filter(&mut query_builder, "description");
+        params
+            .budget_code
+            .append_filter(&mut query_builder, "budget_code");
+        params
+            .description
+            .append_filter(&mut query_builder, "description");
         query_builder
             .build()
             .map(|row: PgRow| row.get::<i64, _>(0))
@@ -166,24 +166,35 @@ impl Element {
         let sql = format!("SELECT * FROM {} WHERE 1=1", Self::TABLE);
         debug!("Read paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
-        params.parent_id.append_filter(&mut query_builder, "parent_id");
-        params.version_id.append_filter(&mut query_builder, "version_id");
-        params.element_type.append_filter(&mut query_builder, "element_type");
+        params
+            .parent_id
+            .append_filter(&mut query_builder, "parent_id");
+        params
+            .version_id
+            .append_filter(&mut query_builder, "version_id");
+        params
+            .element_type
+            .append_filter(&mut query_builder, "element_type");
         params.code.append_filter(&mut query_builder, "code");
-        params.budget_code.append_filter(&mut query_builder, "budget_code");
-        params.description.append_filter(&mut query_builder, "description");
+        params
+            .budget_code
+            .append_filter(&mut query_builder, "budget_code");
+        params
+            .description
+            .append_filter(&mut query_builder, "description");
         if let Some(sort_by) = &params.sort_by {
             query_builder.push(format!(" ORDER BY {} ", sort_by));
-            query_builder.push(if params.asc.unwrap_or(true) { "ASC" } else { "DESC" });
+            query_builder.push(if params.asc.unwrap_or(true) {
+                "ASC"
+            } else {
+                "DESC"
+            });
         }
         query_builder.push(" LIMIT ");
         query_builder.push_bind(params.limit_or_default());
         query_builder.push(" OFFSET ");
         query_builder.push_bind(params.offset());
-        query_builder
-            .build_query_as::<Self>()
-            .fetch_all(pool)
-            .await
+        query_builder.build_query_as::<Self>().fetch_all(pool).await
     }
 
     // =================================================================
@@ -191,18 +202,22 @@ impl Element {
     // =================================================================
     /// Inserta un nuevo registro en la base de datos y devuelve el objeto creado.
     pub async fn create(pg_pool: &PgPool, item: NewElement) -> Result<Self, Error> {
-        let sql = format!("INSERT INTO {} {} RETURNING *", Self::TABLE, Self::INSERT_QUERY);
+        let sql = format!(
+            "INSERT INTO {} {} RETURNING *",
+            Self::TABLE,
+            Self::INSERT_QUERY
+        );
         debug!("Create: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.budget_id)
-        .bind(item.parent_id)
-        .bind(item.version_id)
-        .bind(item.element_type)
-        .bind(item.code)
-        .bind(item.budget_code)
-        .bind(item.description)
-        .fetch_one(pg_pool)
-        .await
+            .bind(item.budget_id)
+            .bind(item.parent_id)
+            .bind(item.version_id)
+            .bind(item.element_type)
+            .bind(item.code)
+            .bind(item.budget_code)
+            .bind(item.description)
+            .fetch_one(pg_pool)
+            .await
     }
 
     // =================================================================
@@ -210,19 +225,23 @@ impl Element {
     // =================================================================
     /// Actualiza un registro por ID y devuelve el objeto actualizado.
     pub async fn update(pg_pool: &PgPool, item: Self) -> Result<Self, Error> {
-        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING *", Self::TABLE, Self::UPDATE_QUERY);
+        let sql = format!(
+            "UPDATE {} SET {} WHERE id = $1 RETURNING *",
+            Self::TABLE,
+            Self::UPDATE_QUERY
+        );
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.id)
-        .bind(item.budget_id)
-        .bind(item.parent_id)
-        .bind(item.version_id)
-        .bind(item.element_type)
-        .bind(item.code)
-        .bind(item.budget_code)
-        .bind(item.description)
-        .fetch_one(pg_pool)
-        .await
+            .bind(item.id)
+            .bind(item.budget_id)
+            .bind(item.parent_id)
+            .bind(item.version_id)
+            .bind(item.element_type)
+            .bind(item.code)
+            .bind(item.budget_code)
+            .bind(item.description)
+            .fetch_one(pg_pool)
+            .await
     }
 
     // =================================================================
@@ -242,7 +261,7 @@ impl Element {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sqlx::{Postgres, QueryBuilder, Execute};
+    use sqlx::{Execute, Postgres, QueryBuilder};
 
     #[test]
     fn test_element_type_display() {
@@ -252,10 +271,14 @@ mod tests {
 
     #[test]
     fn test_element_type_filterable() {
-        let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM elements WHERE 1=1");
+        let mut builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("SELECT * FROM elements WHERE 1=1");
         let element_type_filter = Some(ElementType::Chapter);
         element_type_filter.append_filter(&mut builder, "element_type");
         let query = builder.build();
-        assert_eq!(query.sql(), "SELECT * FROM elements WHERE 1=1 AND element_type LIKE $1");
+        assert_eq!(
+            query.sql(),
+            "SELECT * FROM elements WHERE 1=1 AND element_type LIKE $1"
+        );
     }
 }

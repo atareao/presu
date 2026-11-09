@@ -1,17 +1,18 @@
 mod common;
 use axum::{
-    body::{to_bytes, Body},
-    http::{Request, StatusCode},
     Router,
+    body::{Body, to_bytes},
+    http::{Request, StatusCode},
     routing::get,
 };
-use tower::ServiceExt;
-use std::sync::Arc;
-use backend::models::{AppState, ApiResponse};
 use backend::http::fallback_404;
+use backend::models::{ApiResponse, AppState};
+use std::sync::Arc;
+use tower::ServiceExt;
 
 #[tokio::test]
 async fn test_fallback_404() {
+    let _ = &common::TRACING;
     let pool = common::setup_pool().await;
     let app_state = Arc::new(AppState {
         pool,
@@ -25,7 +26,12 @@ async fn test_fallback_404() {
         .with_state(app_state);
 
     let response = app
-        .oneshot(Request::builder().uri("/non-existent-route").body(Body::empty()).unwrap())
+        .oneshot(
+            Request::builder()
+                .uri("/non-existent-route")
+                .body(Body::empty())
+                .unwrap(),
+        )
         .await
         .unwrap();
 

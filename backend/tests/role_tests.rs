@@ -1,8 +1,7 @@
-use backend::models::{Role, NewRole, RoleParams};
+use backend::models::{NewRole, Role, RoleParams};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-#[path = "common.rs"]
 mod common;
 
 async fn setup() -> PgPool {
@@ -24,9 +23,7 @@ async fn test_create_role() {
 async fn test_read_role() {
     let pool = setup().await;
     let name = format!("Test Role 2-{}", Uuid::new_v4());
-    let new_role = NewRole {
-        name: name.clone(),
-    };
+    let new_role = NewRole { name: name.clone() };
     let role = Role::create(&pool, new_role).await.unwrap();
     let read_role = Role::read_by_id(&pool, role.id).await.unwrap().unwrap();
     assert_eq!(read_role.id, role.id);
@@ -37,9 +34,7 @@ async fn test_read_role() {
 async fn test_update_role() {
     let pool = setup().await;
     let name = format!("Test Role 3-{}", Uuid::new_v4());
-    let new_role = NewRole {
-        name: name.clone(),
-    };
+    let new_role = NewRole { name: name.clone() };
     let mut role = Role::create(&pool, new_role).await.unwrap();
     let updated_name = format!("Updated Role-{}", Uuid::new_v4());
     role.name = updated_name.clone();
@@ -51,9 +46,7 @@ async fn test_update_role() {
 async fn test_delete_role() {
     let pool = setup().await;
     let name = format!("Test Role 4-{}", Uuid::new_v4());
-    let new_role = NewRole {
-        name: name.clone(),
-    };
+    let new_role = NewRole { name: name.clone() };
     let role = Role::create(&pool, new_role).await.unwrap();
     let deleted_role = Role::delete(&pool, role.id).await.unwrap();
     assert_eq!(deleted_role.id, role.id);

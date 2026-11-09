@@ -1,21 +1,7 @@
-use axum::{
-    extract::State,
-    routing,
-    Router,
-    response::IntoResponse,
-    http::StatusCode,
-};
-use crate::models::{
-    Data,
-    ApiResponse,
-    AppState,
-    Project,
-    Budget,
-    User,
-};
+use crate::models::{ApiResponse, AppState, Budget, Data, Project, User};
+use axum::{Router, extract::State, http::StatusCode, response::IntoResponse, routing};
 use std::sync::Arc;
 use tracing::{debug, error};
-
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
@@ -24,9 +10,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/users", routing::get(count_users))
 }
 
-async fn count_projects(
-    State(app_state): State<Arc<AppState>>,
-) -> impl IntoResponse {
+async fn count_projects(State(app_state): State<Arc<AppState>>) -> impl IntoResponse {
     debug!("Counting projects");
     match Project::count_all(&app_state.pool).await {
         Ok(count) => ApiResponse::new(
@@ -44,9 +28,7 @@ async fn count_projects(
         }
     }
 }
-async fn count_budgets(
-    State(app_state): State<Arc<AppState>>,
-) -> impl IntoResponse {
+async fn count_budgets(State(app_state): State<Arc<AppState>>) -> impl IntoResponse {
     debug!("Counting budgets");
     match Budget::count_all(&app_state.pool).await {
         Ok(count) => ApiResponse::new(
@@ -65,9 +47,7 @@ async fn count_budgets(
     }
 }
 
-async fn count_users(
-    State(app_state): State<Arc<AppState>>,
-) -> impl IntoResponse {
+async fn count_users(State(app_state): State<Arc<AppState>>) -> impl IntoResponse {
     debug!("Counting users");
     match User::count_all(&app_state.pool).await {
         Ok(count) => ApiResponse::new(
@@ -85,5 +65,3 @@ async fn count_users(
         }
     }
 }
-
-
