@@ -42,13 +42,15 @@ jobs:
         id: bump
         run: |
           set -euo pipefail
-          last_tag="$(git describe --tags --abbrev=0 2>/dev/null || git rev-list --max-parents=0 HEAD | head -n1)"
+          # `sed -n 1p` (not `head`) to avoid SIGPIPE under pipefail when no tag exists yet.
+          last_tag="$(git describe --tags --abbrev=0 2>/dev/null || git rev-list --max-parents=0 HEAD | sed -n '1p')"
           commits="$(git log "${last_tag}..HEAD" --format="%s")"
           echo "Commits since ${last_tag}:"
           echo "${commits}"
-          if echo "${commits}" | grep -qE 'BREAKING CHANGE|!:'; then
+          # Here-strings (not pipes) avoid SIGPIPE with `grep -q` under pipefail.
+          if grep -qE 'BREAKING CHANGE|!:' <<< "${commits}"; then
             echo "type=--major" >> "$GITHUB_OUTPUT"
-          elif echo "${commits}" | grep -qE 'feat\(|feat:'; then
+          elif grep -qE 'feat\(|feat:' <<< "${commits}"; then
             echo "type=--minor" >> "$GITHUB_OUTPUT"
           else
             echo "type=--patch" >> "$GITHUB_OUTPUT"
