@@ -4,7 +4,7 @@ use backend::models::{
     version::{NewVersion, Version},
 };
 use num_traits::cast::FromPrimitive;
-use rand::Rng;
+use rand::RngExt;
 use sqlx::{PgPool, types::BigDecimal};
 use uuid::Uuid;
 
@@ -51,7 +51,7 @@ async fn setup() -> (PgPool, Version, Unit) {
 #[tokio::test]
 async fn test_create_price() {
     let (pool, version, unit) = setup().await;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let new_price = NewPrice {
         version_id: version.id,
         code: format!(
@@ -63,7 +63,7 @@ async fn test_create_price() {
                 .collect::<String>()
         ),
         description: "Test Price".to_string(),
-        base_price: BigDecimal::from_f64(rng.gen_range(1.0..100.0)).unwrap(),
+        base_price: BigDecimal::from_f64(rng.random_range(1.0..100.0)).unwrap(),
         unit_id: unit.id,
         price_type: PriceType::Base,
     };
@@ -76,7 +76,7 @@ async fn test_create_price() {
 #[tokio::test]
 async fn test_read_price() {
     let (pool, version, unit) = setup().await;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let new_price = NewPrice {
         version_id: version.id,
         code: format!(
@@ -88,7 +88,7 @@ async fn test_read_price() {
                 .collect::<String>()
         ),
         description: "Test Price".to_string(),
-        base_price: BigDecimal::from_f64(rng.gen_range(1.0..100.0)).unwrap(),
+        base_price: BigDecimal::from_f64(rng.random_range(1.0..100.0)).unwrap(),
         unit_id: unit.id,
         price_type: PriceType::Base,
     };
@@ -101,7 +101,7 @@ async fn test_read_price() {
 #[tokio::test]
 async fn test_update_price() {
     let (pool, version, unit) = setup().await;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let new_price = NewPrice {
         version_id: version.id,
         code: format!(
@@ -113,7 +113,7 @@ async fn test_update_price() {
                 .collect::<String>()
         ),
         description: "Test Price".to_string(),
-        base_price: BigDecimal::from_f64(rng.gen_range(1.0..100.0)).unwrap(),
+        base_price: BigDecimal::from_f64(rng.random_range(1.0..100.0)).unwrap(),
         unit_id: unit.id,
         price_type: PriceType::Base,
     };
@@ -126,7 +126,7 @@ async fn test_update_price() {
 #[tokio::test]
 async fn test_delete_price() {
     let (pool, version, unit) = setup().await;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let new_price = NewPrice {
         version_id: version.id,
         code: format!(
@@ -138,7 +138,7 @@ async fn test_delete_price() {
                 .collect::<String>()
         ),
         description: "Test Price".to_string(),
-        base_price: BigDecimal::from_f64(rng.gen_range(1.0..100.0)).unwrap(),
+        base_price: BigDecimal::from_f64(rng.random_range(1.0..100.0)).unwrap(),
         unit_id: unit.id,
         price_type: PriceType::Base,
     };
@@ -152,7 +152,7 @@ async fn test_delete_price() {
 #[tokio::test]
 async fn test_list_prices() {
     let (pool, version, unit) = setup().await;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     let new_price1 = NewPrice {
         version_id: version.id,
@@ -165,7 +165,7 @@ async fn test_list_prices() {
                 .collect::<String>()
         ),
         description: "Test Price 1".to_string(),
-        base_price: BigDecimal::from_f64(rng.gen_range(1.0..100.0)).unwrap(),
+        base_price: BigDecimal::from_f64(rng.random_range(1.0..100.0)).unwrap(),
         unit_id: unit.id,
         price_type: PriceType::Base,
     };
@@ -182,7 +182,7 @@ async fn test_list_prices() {
                 .collect::<String>()
         ),
         description: "Test Price 2".to_string(),
-        base_price: BigDecimal::from_f64(rng.gen_range(1.0..100.0)).unwrap(),
+        base_price: BigDecimal::from_f64(rng.random_range(1.0..100.0)).unwrap(),
         unit_id: unit.id,
         price_type: PriceType::Base,
     };

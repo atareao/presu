@@ -2,7 +2,7 @@ use backend::models::{
     budget::{Budget, BudgetParams, BudgetStatus, NewBudget},
     project::{NewProject, Project},
 };
-use rand::Rng;
+use rand::RngExt;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -23,11 +23,11 @@ async fn setup() -> (PgPool, Project) {
 #[tokio::test]
 async fn test_create_budget() {
     let (pool, project) = setup().await;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let new_budget = NewBudget {
         project_id: project.id,
         code: format!("P-001-{}", Uuid::new_v4()),
-        version_number: rng.gen_range(1..100000),
+        version_number: rng.random_range(1..100000),
         name: "Budget 1".to_string(),
         status: BudgetStatus::Draft,
     };
@@ -41,11 +41,11 @@ async fn test_create_budget() {
 #[tokio::test]
 async fn test_read_budget() {
     let (pool, project) = setup().await;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let new_budget = NewBudget {
         project_id: project.id,
         code: format!("P-002-{}", Uuid::new_v4()),
-        version_number: rng.gen_range(1..100000),
+        version_number: rng.random_range(1..100000),
         name: "Budget 2".to_string(),
         status: BudgetStatus::Draft,
     };
@@ -61,11 +61,11 @@ async fn test_read_budget() {
 #[tokio::test]
 async fn test_update_budget() {
     let (pool, project) = setup().await;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let new_budget = NewBudget {
         project_id: project.id,
         code: format!("P-003-{}", Uuid::new_v4()),
-        version_number: rng.gen_range(1..100000),
+        version_number: rng.random_range(1..100000),
         name: "Budget 3".to_string(),
         status: BudgetStatus::Draft,
     };
@@ -78,11 +78,11 @@ async fn test_update_budget() {
 #[tokio::test]
 async fn test_delete_budget() {
     let (pool, project) = setup().await;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let new_budget = NewBudget {
         project_id: project.id,
         code: format!("P-004-{}", Uuid::new_v4()),
-        version_number: rng.gen_range(1..100000),
+        version_number: rng.random_range(1..100000),
         name: "Budget 4".to_string(),
         status: BudgetStatus::Draft,
     };
@@ -96,11 +96,11 @@ async fn test_delete_budget() {
 #[tokio::test]
 async fn test_list_budgets() {
     let (pool, project) = setup().await;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let new_budget = NewBudget {
         project_id: project.id,
         code: format!("P-005-{}", Uuid::new_v4()),
-        version_number: rng.gen_range(1..100000),
+        version_number: rng.random_range(1..100000),
         name: "Budget 5".to_string(),
         status: BudgetStatus::Draft,
     };
@@ -108,7 +108,7 @@ async fn test_list_budgets() {
     let new_budget = NewBudget {
         project_id: project.id,
         code: format!("P-006-{}", Uuid::new_v4()),
-        version_number: rng.gen_range(1..100000),
+        version_number: rng.random_range(1..100000),
         name: "Budget 6".to_string(),
         status: BudgetStatus::Draft,
     };

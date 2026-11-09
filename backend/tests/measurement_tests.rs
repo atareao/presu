@@ -8,7 +8,7 @@ use backend::models::{
     version::{NewVersion, Version},
 };
 use num_traits::cast::FromPrimitive;
-use rand::Rng;
+use rand::RngExt;
 use serde_json::json;
 use sqlx::{PgPool, types::BigDecimal};
 use uuid::Uuid;
@@ -82,7 +82,7 @@ async fn setup() -> (PgPool, Budget, Version, Element, Price, Unit) {
     let unit = Unit::create(&pool, new_unit).await.unwrap();
 
     // Create a price
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let new_price = NewPrice {
         version_id: version.id,
         code: format!(
@@ -94,7 +94,7 @@ async fn setup() -> (PgPool, Budget, Version, Element, Price, Unit) {
                 .collect::<String>()
         ),
         description: "Test Price for Measurement".to_string(),
-        base_price: BigDecimal::from_f64(rng.gen_range(100.0..200.0)).unwrap(),
+        base_price: BigDecimal::from_f64(rng.random_range(100.0..200.0)).unwrap(),
         unit_id: unit.id,
         price_type: PriceType::Base,
     };
