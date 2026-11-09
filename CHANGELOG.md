@@ -1,4 +1,10 @@
 # Changelog
+## [0.1.2] - 2026-11-09
+
+### Miscellaneous Tasks
+
+- Release v0.1.2
+- *(release)* Sincroniza Cargo.lock tras el bump de versión
 ## [0.1.1] - 2026-11-09
 
 ### Miscellaneous Tasks
