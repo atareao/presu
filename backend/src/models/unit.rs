@@ -57,15 +57,15 @@ impl Unit {
             name,
             symbol,
             description,
-            formula,
+            formula
         )
         VALUES ($1, $2, $3, $4)
     "#;
     const UPDATE_QUERY: &str = r#"
         name = $2,
         symbol = $3,
-        description = $4
-        formula = $5,
+        description = $4,
+        formula = $5
     "#;
 
     // =================================================================
