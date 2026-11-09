@@ -33,7 +33,7 @@ async fn setup() -> (PgPool, Version, Unit) {
         Uuid::new_v4()
             .to_string()
             .chars()
-            .take(2)
+            .take(10)
             .collect::<String>()
     );
     let symbol = "ud".to_string();
