@@ -23,9 +23,9 @@ export const toCapital = (s: string): string => {
 }
 
 
-export const debounce = (func: (...args: any[]) => void, delay: number) => {
+export const debounce = <A extends unknown[]>(func: (...args: A) => void, delay: number) => {
     let timeoutId: ReturnType<typeof setTimeout>;
-    return function(this: any, ...args: any[]) {
+    return function(this: unknown, ...args: A) {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => func.apply(this, args), delay);
     };
@@ -35,19 +35,19 @@ export const debounce = (func: (...args: any[]) => void, delay: number) => {
  * Obtiene un valor anidado de un objeto de forma segura (ej: 'value.name_es')
  * Esto resuelve el error TS2536.
  */
-export const getNestedValue = (obj: any, path: string): any => {
+export const getNestedValue = (obj: unknown, path: string): unknown => {
     // Si el objeto es nulo o indefinido, o la ruta no es válida, devolvemos undefined
     if (!obj || !path) {
         return undefined;
     }
 
     const pathParts = path.split('.');
-    let current = obj;
+    let current: unknown = obj;
 
     for (const part of pathParts) {
         // Navegamos al siguiente nivel, asegurando que el objeto actual no sea nulo
         if (current && typeof current === 'object' && part in current) {
-            current = current[part];
+            current = (current as Record<string, unknown>)[part];
         } else {
             // Si el camino se rompe (ej: 'value' es null o 'name_es' no existe en 'value')
             return undefined;
