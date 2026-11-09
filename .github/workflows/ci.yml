@@ -56,6 +56,23 @@ jobs:
       - name: Run Rust tests
         run: cargo test
 
+  audit:
+    name: Audit dependencies (Rust)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Run cargo audit
+        # Contrasta backend/Cargo.lock contra la base de datos RustSec.
+        # Si encuentra un aviso, falla y abre/actualiza un issue con el detalle.
+        uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   frontend:
     name: Frontend (Node)
     runs-on: ubuntu-latest
