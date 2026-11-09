@@ -11,7 +11,6 @@ use bcrypt::verify;
 use tracing::{debug, error};
 
 use axum_extra::extract::cookie::{Cookie, SameSite};
-use jsonwebtoken::{EncodingKey, Header, encode};
 
 use crate::models::{ApiResponse, AppState, Data, NewUser, Role, TokenClaims, User, UserPass};
 
@@ -71,19 +70,15 @@ pub async fn login(
         iat,
     };
 
-    encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(app_state.secret.as_bytes()),
-    )
-    .map_err(|e| {
-        let message = format!("Encoding JWT error: {}", e);
-        ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, &message, Data::None)
-    })
-    .map(|token| {
-        let value = serde_json::json!({"token": token});
-        ApiResponse::new(StatusCode::OK, "Ok", Data::Some(value))
-    })
+    crate::jwt::encode(&claims, app_state.secret.as_bytes())
+        .map_err(|e| {
+            let message = format!("Encoding JWT error: {}", e);
+            ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, &message, Data::None)
+        })
+        .map(|token| {
+            let value = serde_json::json!({"token": token});
+            ApiResponse::new(StatusCode::OK, "Ok", Data::Some(value))
+        })
 }
 
 pub async fn register(

@@ -7,12 +7,13 @@ Integración continua y publicación de imagen Docker, replicando el esquema del
 - `.github/workflows/ci.yml` — checks en PR/push a `development`/`main`.
 - `.github/workflows/image.yml` — build + smoke test + push de imagen (push a `main`, tags `v*`, manual).
 - `.github/workflows/release-prepare.yml` — bump de versión + `CHANGELOG.md` + tag `vX.Y.Z` (push a `main`, manual).
-- `.github/dependabot.yml` — actualizaciones semanales (cargo `/backend`, npm `/frontend`) hacia `development`.
+- `.github/dependabot.yml` — actualizaciones semanales (cargo `/backend`, npm `/frontend`) hacia `development`, agrupadas minor+patch.
 - `cliff.toml` — changelog con git-cliff.
 - `rust-toolchain.toml` — toolchain 1.98.1 con `rustfmt` y `clippy`.
 
 ## Cómo funciona
 - **Backend (job `backend`)**: `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test`. Usa un servicio PostgreSQL efímero; los tests aplican las migraciones en `setup_pool`.
+- **Auditoría Rust (job `audit`)**: `rustsec/audit-check` contra `backend/Cargo.lock`. Abre/actualiza un issue si aparece un aviso.
 - **Frontend (job `frontend`)**: pnpm 12 (`packageManager`), `tsc --noEmit`, `lint`, `pnpm audit --audit-level high`, `test:run`, `build`.
 - **Release**: en cada push a `main` (los commits `chore: release ...` se saltan para no entrar en bucle) detecta el bump desde los conventional commits (`!:`/`BREAKING CHANGE` → major, `feat` → minor, resto → patch), ejecuta `vampus upgrade`, sincroniza `backend/Cargo.lock` (`cargo metadata`) porque el Dockerfile compila con `--locked`, genera `CHANGELOG.md` con `git-cliff`, commitea, crea y publica el tag `vX.Y.Z`, y sincroniza `development` con `main`.
 - **Imagen**: construye el Dockerfile, arranca el contenedor contra un Postgres efímero y valida `GET /api/v1/health` (con `RUST_ENV=production`). Si pasa, publica en `ghcr.io/atareao/presu` (`latest` + `sha-*`; en tags `vX.Y.Z` → `vX.Y.Z`, `X.Y`, `latest`).
@@ -22,6 +23,8 @@ Integración continua y publicación de imagen Docker, replicando el esquema del
 - `RUST_ENV=production` en el contenedor (hace que busque las migraciones junto al binario).
 
 ## Cómo habilitar/desplegar
+Ramas `main` y `development` protegidas: PR obligatorio y checks `Backend (Rust)` y `Frontend (Node)` en verde (sin aprobaciones, `enforce_admins: false` para que el release pueda empujar). CodeQL está activado por defecto (default setup) desde la configuración del repo, sin fichero de workflow.
+
 Nada que configurar: los workflows se ejecutan solos. Requiere `GITHUB_TOKEN` (incluido) para publicar en GHCR.
 El release usa `secrets.GH_PAT` si existe y cae a `GITHUB_TOKEN` si no: con `GITHUB_TOKEN` los commits/tags que empuja **no disparan otros workflows**, así que para que un tag `v*` lance `image.yml` hay que definir el secreto `GH_PAT` (token con scope `repo`/`workflow`).
 

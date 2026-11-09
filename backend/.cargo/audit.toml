@@ -1,0 +1,22 @@
+# Configuración de cargo-audit (se lee automáticamente desde el directorio del crate).
+# Lo ejecuta el job "Audit dependencies (Rust)" del workflow CI.
+
+[advisories]
+ignore = [
+    # pin-utils 0.1.0 — unmaintained (RUSTSEC-2026-0441). Transitiva de
+    # futures-util vía axum/sqlx; no hay versión parcheada ni alternativa.
+    "RUSTSEC-2026-0441",
+
+    # rsa 0.9.10 — Marvin attack (RUSTSEC-2023-0071). El crate está en el
+    # lockfile como dependencia opcional, pero NO se compila: `cargo tree -i rsa`
+    # no devuelve nada (venía de jsonwebtoken con la feature `rust_crypto`).
+    # La solución real fue eliminar jsonwebtoken y firmar JWT con hmac+sha2
+    # (src/jwt.rs). Se ignora hasta que Cargo deje de resolver la dependencia
+    # opcional en el lockfile.
+    "RUSTSEC-2023-0071",
+
+    # libsqlite3-sys 0.30.1 — CVE de SQLite (RUSTSEC-2026-0459). Solo entra si
+    # se activa la feature `sqlite` de sqlx, que este proyecto no usa (solo
+    # postgres). La solución (>=0.39.0) exige sqlx 0.9, aún sin publicar.
+    "RUSTSEC-2026-0459",
+]

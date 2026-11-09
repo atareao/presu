@@ -1,4 +1,4 @@
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use once_cell::sync::Lazy;
 use sqlx::{PgPool, migrate::Migrator, postgres::PgPoolOptions};
 use std::{env, path::Path};

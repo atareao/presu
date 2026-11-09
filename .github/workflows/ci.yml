@@ -56,6 +56,26 @@ jobs:
       - name: Run Rust tests
         run: cargo test
 
+  audit:
+    name: Audit dependencies (Rust)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install cargo-audit
+        # Binario prebuilt: evita compilar cargo-audit en cada run.
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+
+      - name: Run cargo audit
+        # Contrasta Cargo.lock contra la base de datos RustSec (RUSTSEC).
+        run: cargo audit
+
   frontend:
     name: Frontend (Node)
     runs-on: ubuntu-latest
