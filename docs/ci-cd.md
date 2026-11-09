@@ -1,0 +1,31 @@
+# CI/CD (GitHub Actions)
+
+## Qué es
+Integración continua y publicación de imagen Docker, replicando el esquema del repo `valet`.
+
+## Ficheros
+- `.github/workflows/ci.yml` — checks en PR/push a `development`/`main`.
+- `.github/workflows/image.yml` — build + smoke test + push de imagen (push a `main`, tags `v*`, manual).
+- `.github/dependabot.yml` — actualizaciones semanales (cargo `/backend`, npm `/frontend`) hacia `development`.
+- `cliff.toml` — changelog con git-cliff.
+- `rust-toolchain.toml` — toolchain 1.98.1 con `rustfmt` y `clippy`.
+
+## Cómo funciona
+- **Backend (job `backend`)**: `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test`. Usa un servicio PostgreSQL efímero; los tests aplican las migraciones en `setup_pool`.
+- **Frontend (job `frontend`)**: pnpm 12 (`packageManager`), `tsc --noEmit`, `lint`, `pnpm audit --audit-level high`, `test:run`, `build`.
+- **Imagen**: construye el Dockerfile, arranca el contenedor contra un Postgres efímero y valida `GET /api/v1/health` (con `RUST_ENV=production`). Si pasa, publica en `ghcr.io/atareao/presu` (`latest` + `sha-*`; en tags `vX.Y.Z` → `vX.Y.Z`, `X.Y`, `latest`).
+
+## Variables/config
+- `DATABASE_URL` (CI: servicio Postgres `presu:presu@localhost:5432/presu`).
+- `RUST_ENV=production` en el contenedor (hace que busque las migraciones junto al binario).
+
+## Cómo habilitar/desplegar
+Nada que configurar: los workflows se ejecutan solos. Requiere `GITHUB_TOKEN` (incluido) para publicar en GHCR.
+
+## Decisiones
+- Se fija `packageManager: pnpm@12.15.0` para reproducibilidad (corepack/Docker y CI).
+- Se trackea `backend/Cargo.lock` para builds `--locked` reproducibles.
+- Migración correctiva `20251203051200_fix_units_columns`: alinea `units` a `name/symbol/description/formula` (el commit `5a36b19` cambió solo la migración a `unit/params` y dejó modelo/tests/frontend inconsistentes). Idempotente y reversible.
+
+## Follow-ups
+- No hay workflow de release/tag automático (valet tampoco): el bump de versión es manual con `just upgrade` (vampus).
