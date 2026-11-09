@@ -40,7 +40,10 @@ mod tests {
 
     #[test]
     fn test_paginable_defaults() {
-        let params = TestParams { page: None, limit: None };
+        let params = TestParams {
+            page: None,
+            limit: None,
+        };
         assert_eq!(params.page_or_default(), DEFAULT_PAGE as i64);
         assert_eq!(params.limit_or_default(), DEFAULT_LIMIT as i64);
         assert_eq!(params.offset(), 0);
@@ -48,7 +51,10 @@ mod tests {
 
     #[test]
     fn test_paginable_with_values() {
-        let params = TestParams { page: Some(2), limit: Some(10) };
+        let params = TestParams {
+            page: Some(2),
+            limit: Some(10),
+        };
         assert_eq!(params.page_or_default(), 2);
         assert_eq!(params.limit_or_default(), 10);
         assert_eq!(params.offset(), 10);

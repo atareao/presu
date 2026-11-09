@@ -1,17 +1,11 @@
+use super::{Filterable, Paginable, UtcTimestamp};
+use macros::axum_crud;
 use serde::{Deserialize, Serialize};
 use sqlx::{
-    Postgres,
-    QueryBuilder,
-    Error, FromRow, Row,
+    Error, FromRow, Postgres, QueryBuilder, Row,
     postgres::{PgPool, PgRow},
 };
 use tracing::debug;
-use super::{
-    Paginable,
-    Filterable,
-    UtcTimestamp,
-};
-use macros::axum_crud;
 
 // =================================================================
 // 1. ESTRUCTURAS DE DATOS (STRUCTS)
@@ -24,7 +18,7 @@ pub struct Unit {
     pub name: String,
     pub symbol: String,
     pub description: Option<String>,
-    pub formula: String, 
+    pub formula: String,
     pub created_at: UtcTimestamp,
     pub updated_at: UtcTimestamp,
 }
@@ -86,12 +80,10 @@ impl Unit {
             .await
     }
 
-    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error>{
+    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error> {
         let sql = format!("SELECT * FROM {}", Self::TABLE);
         debug!("Read all: {}", &sql);
-        sqlx::query_as::<_, Self>(&sql)
-            .fetch_all(pg_pool)
-            .await
+        sqlx::query_as::<_, Self>(&sql).fetch_all(pg_pool).await
     }
 
     pub async fn count_paged(pool: &PgPool, params: &UnitParams) -> Result<i64, Error> {
@@ -99,7 +91,9 @@ impl Unit {
         debug!("Count paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
         params.name.append_filter(&mut query_builder, "name");
-        params.description.append_filter(&mut query_builder, "description");
+        params
+            .description
+            .append_filter(&mut query_builder, "description");
         query_builder
             .build()
             .map(|row: PgRow| row.get::<i64, _>(0))
@@ -112,19 +106,22 @@ impl Unit {
         debug!("Read paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
         params.name.append_filter(&mut query_builder, "name");
-        params.description.append_filter(&mut query_builder, "description");
+        params
+            .description
+            .append_filter(&mut query_builder, "description");
         if let Some(sort_by) = &params.sort_by {
             query_builder.push(format!(" ORDER BY {} ", sort_by));
-            query_builder.push(if params.asc.unwrap_or(true) { "ASC" } else { "DESC" });
+            query_builder.push(if params.asc.unwrap_or(true) {
+                "ASC"
+            } else {
+                "DESC"
+            });
         }
         query_builder.push(" LIMIT ");
         query_builder.push_bind(params.limit_or_default());
         query_builder.push(" OFFSET ");
         query_builder.push_bind(params.offset());
-        query_builder
-            .build_query_as::<Self>()
-            .fetch_all(pool)
-            .await
+        query_builder.build_query_as::<Self>().fetch_all(pool).await
     }
 
     // =================================================================
@@ -132,15 +129,19 @@ impl Unit {
     // =================================================================
     /// Inserta un nuevo registro en la base de datos y devuelve el objeto creado.
     pub async fn create(pg_pool: &PgPool, item: NewUnit) -> Result<Self, Error> {
-        let sql = format!("INSERT INTO {} {} RETURNING *", Self::TABLE, Self::INSERT_QUERY);
+        let sql = format!(
+            "INSERT INTO {} {} RETURNING *",
+            Self::TABLE,
+            Self::INSERT_QUERY
+        );
         debug!("Create: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.name)
-        .bind(item.symbol)
-        .bind(item.description)
-        .bind(item.formula)
-        .fetch_one(pg_pool)
-        .await
+            .bind(item.name)
+            .bind(item.symbol)
+            .bind(item.description)
+            .bind(item.formula)
+            .fetch_one(pg_pool)
+            .await
     }
 
     // =================================================================
@@ -148,16 +149,20 @@ impl Unit {
     // =================================================================
     /// Actualiza un registro por ID y devuelve el objeto actualizado.
     pub async fn update(pg_pool: &PgPool, item: Unit) -> Result<Self, Error> {
-        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING *", Self::TABLE, Self::UPDATE_QUERY);
+        let sql = format!(
+            "UPDATE {} SET {} WHERE id = $1 RETURNING *",
+            Self::TABLE,
+            Self::UPDATE_QUERY
+        );
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.id)
-        .bind(item.name)
-        .bind(item.symbol)
-        .bind(item.description)
-        .bind(item.formula)
-        .fetch_one(pg_pool)
-        .await
+            .bind(item.id)
+            .bind(item.name)
+            .bind(item.symbol)
+            .bind(item.description)
+            .bind(item.formula)
+            .fetch_one(pg_pool)
+            .await
     }
 
     // =================================================================

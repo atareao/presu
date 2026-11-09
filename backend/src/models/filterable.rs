@@ -1,8 +1,4 @@
-use sqlx::{
-    Postgres,
-    QueryBuilder,
-    types::BigDecimal,
-};
+use sqlx::{Postgres, QueryBuilder, types::BigDecimal};
 
 pub trait Filterable {
     fn append_filter(&self, builder: &mut QueryBuilder<Postgres>, column: &str);
@@ -61,21 +57,26 @@ impl Filterable for Option<BigDecimal> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sqlx::{Postgres, QueryBuilder, Execute};
+    use sqlx::{Execute, Postgres, QueryBuilder};
     use std::str::FromStr;
 
     #[test]
     fn test_filterable_string() {
-        let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM table WHERE 1=1");
+        let mut builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("SELECT * FROM table WHERE 1=1");
         let filter = Some("test".to_string());
         filter.append_filter(&mut builder, "column");
         let query = builder.build();
-        assert_eq!(query.sql(), "SELECT * FROM table WHERE 1=1 AND column LIKE $1");
+        assert_eq!(
+            query.sql(),
+            "SELECT * FROM table WHERE 1=1 AND column LIKE $1"
+        );
     }
 
     #[test]
     fn test_filterable_i32() {
-        let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM table WHERE 1=1");
+        let mut builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("SELECT * FROM table WHERE 1=1");
         let filter = Some(123);
         filter.append_filter(&mut builder, "column");
         let query = builder.build();
@@ -84,7 +85,8 @@ mod tests {
 
     #[test]
     fn test_filterable_bool() {
-        let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM table WHERE 1=1");
+        let mut builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("SELECT * FROM table WHERE 1=1");
         let filter = Some(true);
         filter.append_filter(&mut builder, "column");
         let query = builder.build();
@@ -93,7 +95,8 @@ mod tests {
 
     #[test]
     fn test_filterable_f64() {
-        let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM table WHERE 1=1");
+        let mut builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("SELECT * FROM table WHERE 1=1");
         let filter = Some(123.45);
         filter.append_filter(&mut builder, "column");
         let query = builder.build();
@@ -102,7 +105,8 @@ mod tests {
 
     #[test]
     fn test_filterable_big_decimal() {
-        let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("SELECT * FROM table WHERE 1=1");
+        let mut builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("SELECT * FROM table WHERE 1=1");
         let filter = Some(BigDecimal::from_str("123.45").unwrap());
         filter.append_filter(&mut builder, "column");
         let query = builder.build();

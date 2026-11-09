@@ -1,68 +1,31 @@
-use backend::{models, http};
+use backend::{http, models};
 
 use axum::{
     Router,
     http::{
-        header::{
-            ACCEPT,
-            AUTHORIZATION,
-            CONTENT_TYPE
-        },
         Method,
+        header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     },
-};
-use tower_http::{
-    trace::TraceLayer,
-    cors::{
-        CorsLayer,
-        Any,
-    },
-};
-use std::sync::Arc;
-use sqlx::{
-    postgres::PgPoolOptions,
-    migrate::{
-        Migrator,
-        MigrateDatabase
-    },
-};
-use tracing_subscriber::{
-    EnvFilter, layer::SubscriberExt,
-    util::SubscriberInitExt
-};
-use tower_http::services::{ServeDir, ServeFile};
-use tracing::{
-    info,
-    debug,
-};
-use std::{
-    str::FromStr,
-    env::var,
-    path::Path,
-};
-use models::{
-    Budget,
-    Descomposition,
-    Element,
-    Measurement,
-    Price,
-    Project,
-    Role,
-    Unit,
-    User,
-    Version,
-};
-use http::{
-    health,
-    auth,
-    stats,
-    fallback_404,
 };
 use dotenv::dotenv;
+use http::{auth, fallback_404, health, stats};
+use models::{AppState, Error};
 use models::{
-    AppState,
-    Error,
+    Budget, Descomposition, Element, Measurement, Price, Project, Role, Unit, User, Version,
 };
+use sqlx::{
+    migrate::{MigrateDatabase, Migrator},
+    postgres::PgPoolOptions,
+};
+use std::sync::Arc;
+use std::{env::var, path::Path, str::FromStr};
+use tower_http::services::{ServeDir, ServeFile};
+use tower_http::{
+    cors::{Any, CorsLayer},
+    trace::TraceLayer,
+};
+use tracing::{debug, info};
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 const STATIC_DIR: &str = "static";
 
@@ -83,14 +46,17 @@ async fn main() -> Result<(), Error> {
     let secret = var("SECRET").unwrap_or("esto-es-un-secreto".to_string());
     debug!("Secret: {}", secret);
 
-
-    if !sqlx::Postgres::database_exists(&db_url).await.unwrap(){
+    if !sqlx::Postgres::database_exists(&db_url).await.unwrap() {
         sqlx::Postgres::create_database(&db_url).await.unwrap();
     }
 
-    let migrations = if var("RUST_ENV") == Ok("production".to_string()){
-        std::env::current_exe().unwrap().parent().unwrap().join("migrations")
-    }else{
+    let migrations = if var("RUST_ENV") == Ok("production".to_string()) {
+        std::env::current_exe()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("migrations")
+    } else {
         let crate_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
         Path::new(&crate_dir).join("migrations")
     };
@@ -112,8 +78,13 @@ async fn main() -> Result<(), Error> {
     let cors = CorsLayer::new()
         //.allow_origin(url.parse::<HeaderValue>().unwrap())
         .allow_origin(Any)
-        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::PATCH,
-            Method::DELETE])
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::PATCH,
+            Method::DELETE,
+        ])
         //.allow_credentials(true)
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
@@ -136,12 +107,11 @@ async fn main() -> Result<(), Error> {
             pool,
             secret,
             static_dir: STATIC_DIR.to_string(),
-    }));
+        }));
 
     let app = Router::new()
         .nest("/api/v1", api_routes)
-        .fallback_service(ServeDir::new(STATIC_DIR)
-            .fallback(ServeFile::new("static/index.html")))
+        .fallback_service(ServeDir::new(STATIC_DIR).fallback(ServeFile::new("static/index.html")))
         .layer(TraceLayer::new_for_http())
         .layer(cors);
 

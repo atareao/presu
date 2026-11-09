@@ -1,20 +1,12 @@
+use super::{Filterable, Paginable, UtcTimestamp};
+use macros::axum_crud;
 use serde::{Deserialize, Serialize};
 use sqlx::{
-    self,
-    Type,
-    Postgres,
-    QueryBuilder,
-    Error, FromRow, Row,
+    self, Error, FromRow, Postgres, QueryBuilder, Row, Type,
     postgres::{PgPool, PgRow},
 };
-use tracing::debug;
-use super::{
-    Paginable,
-    Filterable,
-    UtcTimestamp,
-};
-use macros::axum_crud;
 use std::fmt;
+use tracing::debug;
 
 // =================================================================
 // 1. ESTRUCTURAS DE DATOS (STRUCTS)
@@ -134,21 +126,23 @@ impl Budget {
             .await
     }
 
-    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error>{
+    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error> {
         let sql = format!("SELECT * FROM {}", Self::TABLE);
         debug!("Read all: {}", &sql);
-        sqlx::query_as::<_, Self>(&sql)
-            .fetch_all(pg_pool)
-            .await
+        sqlx::query_as::<_, Self>(&sql).fetch_all(pg_pool).await
     }
 
     pub async fn count_paged(pool: &PgPool, params: &BudgetParams) -> Result<i64, Error> {
         let sql = format!("SELECT COUNT(*) FROM {} WHERE 1=1", Self::TABLE);
         debug!("Count paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
-        params.project_id.append_filter(&mut query_builder, "project_id");
+        params
+            .project_id
+            .append_filter(&mut query_builder, "project_id");
         params.code.append_filter(&mut query_builder, "code");
-        params.version_number.append_filter(&mut query_builder, "version_number");
+        params
+            .version_number
+            .append_filter(&mut query_builder, "version_number");
         params.status.append_filter(&mut query_builder, "status");
         params.name.append_filter(&mut query_builder, "name");
         query_builder
@@ -162,23 +156,28 @@ impl Budget {
         let sql = format!("SELECT * FROM {} WHERE 1=1", Self::TABLE);
         debug!("Read paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
-        params.project_id.append_filter(&mut query_builder, "project_id");
+        params
+            .project_id
+            .append_filter(&mut query_builder, "project_id");
         params.code.append_filter(&mut query_builder, "code");
-        params.version_number.append_filter(&mut query_builder, "version_number");
+        params
+            .version_number
+            .append_filter(&mut query_builder, "version_number");
         params.status.append_filter(&mut query_builder, "status");
         params.name.append_filter(&mut query_builder, "name");
         if let Some(sort_by) = &params.sort_by {
             query_builder.push(format!(" ORDER BY {} ", sort_by));
-            query_builder.push(if params.asc.unwrap_or(true) { "ASC" } else { "DESC" });
+            query_builder.push(if params.asc.unwrap_or(true) {
+                "ASC"
+            } else {
+                "DESC"
+            });
         }
         query_builder.push(" LIMIT ");
         query_builder.push_bind(params.limit_or_default());
         query_builder.push(" OFFSET ");
         query_builder.push_bind(params.offset());
-        query_builder
-            .build_query_as::<Self>()
-            .fetch_all(pool)
-            .await
+        query_builder.build_query_as::<Self>().fetch_all(pool).await
     }
 
     // =================================================================
@@ -186,16 +185,20 @@ impl Budget {
     // =================================================================
     /// Inserta un nuevo registro en la base de datos y devuelve el objeto creado.
     pub async fn create(pg_pool: &PgPool, item: NewBudget) -> Result<Self, Error> {
-        let sql = format!("INSERT INTO {} {} RETURNING *", Self::TABLE, Self::INSERT_QUERY);
+        let sql = format!(
+            "INSERT INTO {} {} RETURNING *",
+            Self::TABLE,
+            Self::INSERT_QUERY
+        );
         debug!("Create: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.project_id)
-        .bind(item.code)
-        .bind(item.version_number)
-        .bind(item.status)
-        .bind(item.name)
-        .fetch_one(pg_pool)
-        .await
+            .bind(item.project_id)
+            .bind(item.code)
+            .bind(item.version_number)
+            .bind(item.status)
+            .bind(item.name)
+            .fetch_one(pg_pool)
+            .await
     }
 
     // =================================================================
@@ -203,17 +206,21 @@ impl Budget {
     // =================================================================
     /// Actualiza un registro por ID y devuelve el objeto actualizado.
     pub async fn update(pg_pool: &PgPool, item: Self) -> Result<Self, Error> {
-        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING *", Self::TABLE, Self::UPDATE_QUERY);
+        let sql = format!(
+            "UPDATE {} SET {} WHERE id = $1 RETURNING *",
+            Self::TABLE,
+            Self::UPDATE_QUERY
+        );
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.id)
-        .bind(item.project_id)
-        .bind(item.code)
-        .bind(item.version_number)
-        .bind(item.status)
-        .bind(item.name)
-        .fetch_one(pg_pool)
-        .await
+            .bind(item.id)
+            .bind(item.project_id)
+            .bind(item.code)
+            .bind(item.version_number)
+            .bind(item.status)
+            .bind(item.name)
+            .fetch_one(pg_pool)
+            .await
     }
 
     // =================================================================
@@ -236,9 +243,7 @@ impl Budget {
     pub async fn count_all(pg_pool: &PgPool) -> Result<i64, Error> {
         let sql = format!("SELECT COUNT(*) FROM {}", Self::TABLE);
         debug!("Count all: {}", &sql);
-        sqlx::query_scalar::<_, i64>(&sql)
-            .fetch_one(pg_pool)
-            .await
+        sqlx::query_scalar::<_, i64>(&sql).fetch_one(pg_pool).await
     }
 }
 

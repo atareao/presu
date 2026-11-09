@@ -1,34 +1,31 @@
+use super::{Filterable, Paginable, UtcTimestamp};
+use macros::axum_crud;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use sqlx::{
-    self,
-    Postgres,
-    QueryBuilder,
-    Error, FromRow, Row,
+    self, Error, FromRow, Postgres, QueryBuilder, Row,
     postgres::{PgPool, PgRow},
     types::BigDecimal,
 };
 use tracing::debug;
-use super::{
-    Paginable,
-    Filterable,
-    UtcTimestamp,
-};
-use serde_json::Value;
-use macros::axum_crud;
 
 // =================================================================
 // 1. ESTRUCTURAS DE DATOS (STRUCTS)
 // =================================================================
 /// Representa una fila en la tabla 'measurements'
-#[axum_crud(path = "/measurements", new = "NewMeasurement", params = "MeasurementParams")]
+#[axum_crud(
+    path = "/measurements",
+    new = "NewMeasurement",
+    params = "MeasurementParams"
+)]
 #[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct Measurement {
     pub id: i32,
     // Clave primaria/foránea a elements.id
-    pub element_id: i32, 
-    pub price_id: i32, 
+    pub element_id: i32,
+    pub price_id: i32,
     // Los parámetros variables de la medición (ej: {"largo": 10.0})
-    pub params_json: Value, 
+    pub params_json: Value,
     pub measurement_text: Option<String>,
     pub measured_quantity: BigDecimal, // NUMERIC(10, 4)
     pub created_at: UtcTimestamp,
@@ -38,10 +35,10 @@ pub struct Measurement {
 // DTO para la creación de una nueva versión de presupuesto
 #[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct NewMeasurement {
-    pub element_id: i32, 
-    pub price_id: i32, 
+    pub element_id: i32,
+    pub price_id: i32,
     // Los parámetros variables de la medición (ej: {"largo": 10.0})
-    pub params_json: Value, 
+    pub params_json: Value,
     pub measurement_text: Option<String>,
     pub measured_quantity: BigDecimal, // NUMERIC(10, 4)
 }
@@ -95,20 +92,22 @@ impl Measurement {
             .await
     }
 
-    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error>{
+    pub async fn read_all(pg_pool: &PgPool) -> Result<Vec<Self>, Error> {
         let sql = format!("SELECT * FROM {}", Self::TABLE);
         debug!("Read all: {}", &sql);
-        sqlx::query_as::<_, Self>(&sql)
-            .fetch_all(pg_pool)
-            .await
+        sqlx::query_as::<_, Self>(&sql).fetch_all(pg_pool).await
     }
 
     pub async fn count_paged(pool: &PgPool, params: &MeasurementParams) -> Result<i64, Error> {
         let sql = format!("SELECT COUNT(*) FROM {} WHERE 1=1", Self::TABLE);
         debug!("Count paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
-        params.measurement_text.append_filter(&mut query_builder, "measurement_text");
-        params.measured_quantity.append_filter(&mut query_builder, "measured_quantity");
+        params
+            .measurement_text
+            .append_filter(&mut query_builder, "measurement_text");
+        params
+            .measured_quantity
+            .append_filter(&mut query_builder, "measured_quantity");
         query_builder
             .build()
             .map(|row: PgRow| row.get::<i64, _>(0))
@@ -120,20 +119,25 @@ impl Measurement {
         let sql = format!("SELECT * FROM {} WHERE 1=1", Self::TABLE);
         debug!("Read paged: {}", &sql);
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(&sql);
-        params.measurement_text.append_filter(&mut query_builder, "measurement_text");
-        params.measured_quantity.append_filter(&mut query_builder, "measured_quantity");
+        params
+            .measurement_text
+            .append_filter(&mut query_builder, "measurement_text");
+        params
+            .measured_quantity
+            .append_filter(&mut query_builder, "measured_quantity");
         if let Some(sort_by) = &params.sort_by {
             query_builder.push(format!(" ORDER BY {} ", sort_by));
-            query_builder.push(if params.asc.unwrap_or(true) { "ASC" } else { "DESC" });
+            query_builder.push(if params.asc.unwrap_or(true) {
+                "ASC"
+            } else {
+                "DESC"
+            });
         }
         query_builder.push(" LIMIT ");
         query_builder.push_bind(params.limit_or_default());
         query_builder.push(" OFFSET ");
         query_builder.push_bind(params.offset());
-        query_builder
-            .build_query_as::<Self>()
-            .fetch_all(pool)
-            .await
+        query_builder.build_query_as::<Self>().fetch_all(pool).await
     }
 
     // =================================================================
@@ -144,13 +148,13 @@ impl Measurement {
         let sql = format!("{} RETURNING *", Self::INSERT_QUERY);
         debug!("Create: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.element_id)
-        .bind(item.price_id)
-        .bind(item.params_json)
-        .bind(item.measurement_text)
-        .bind(item.measured_quantity)
-        .fetch_one(pg_pool)
-        .await
+            .bind(item.element_id)
+            .bind(item.price_id)
+            .bind(item.params_json)
+            .bind(item.measurement_text)
+            .bind(item.measured_quantity)
+            .fetch_one(pg_pool)
+            .await
     }
 
     // =================================================================
@@ -158,17 +162,21 @@ impl Measurement {
     // =================================================================
     /// Actualiza un registro por ID y devuelve el objeto actualizado.
     pub async fn update(pg_pool: &PgPool, item: Self) -> Result<Self, Error> {
-        let sql = format!("UPDATE {} SET {} WHERE id = $1 RETURNING *", Self::TABLE, Self::UPDATE_QUERY);
+        let sql = format!(
+            "UPDATE {} SET {} WHERE id = $1 RETURNING *",
+            Self::TABLE,
+            Self::UPDATE_QUERY
+        );
         debug!("Update: {}", &sql);
         sqlx::query_as::<_, Self>(&sql)
-        .bind(item.id)
-        .bind(item.element_id)
-        .bind(item.price_id)
-        .bind(item.params_json)
-        .bind(item.measurement_text)
-        .bind(item.measured_quantity)
-        .fetch_one(pg_pool)
-        .await
+            .bind(item.id)
+            .bind(item.element_id)
+            .bind(item.price_id)
+            .bind(item.params_json)
+            .bind(item.measurement_text)
+            .bind(item.measured_quantity)
+            .fetch_one(pg_pool)
+            .await
     }
 
     // =================================================================

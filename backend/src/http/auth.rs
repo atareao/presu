@@ -1,22 +1,19 @@
 use std::sync::Arc;
 
 use axum::{
-    body,
-    extract::{
-        State,
-        Path,
-    },
-    http::{header, StatusCode},
+    Json, Router, body,
+    extract::{Path, State},
+    http::{StatusCode, header},
     response::{IntoResponse, Response},
-    routing, Json, Router,
+    routing,
 };
 use bcrypt::verify;
 use tracing::{debug, error};
 
 use axum_extra::extract::cookie::{Cookie, SameSite};
-use jsonwebtoken::{encode, EncodingKey, Header};
+use jsonwebtoken::{EncodingKey, Header, encode};
 
-use crate::models::{ApiResponse, AppState, Data, TokenClaims, User, UserPass, NewUser, Role};
+use crate::models::{ApiResponse, AppState, Data, NewUser, Role, TokenClaims, User, UserPass};
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
@@ -27,14 +24,15 @@ pub fn router() -> Router<Arc<AppState>> {
 }
 
 pub fn api_user_router() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", routing::get(read))
+    Router::new().route("/", routing::get(read))
 }
-
 
 type Result = std::result::Result<ApiResponse, ApiResponse>;
 
-pub async fn login(State(app_state): State<Arc<AppState>>, Json(user_pass): Json<UserPass>) -> Result {
+pub async fn login(
+    State(app_state): State<Arc<AppState>>,
+    Json(user_pass): Json<UserPass>,
+) -> Result {
     //) -> Result<Json<serde_json::Value>,(StatusCode, Json<serde_json::Value>)>{
     tracing::info!("init login");
     tracing::info!("User pass: {:?}", user_pass);
@@ -96,11 +94,19 @@ pub async fn register(
     match User::create(&app_state.pool, user).await {
         Ok(user) => {
             debug!("User created: {:?}", user);
-            ApiResponse::new(StatusCode::CREATED, "User created", Data::Some(serde_json::to_value(user).unwrap()))
-        },
+            ApiResponse::new(
+                StatusCode::CREATED,
+                "User created",
+                Data::Some(serde_json::to_value(user).unwrap()),
+            )
+        }
         Err(e) => {
             error!("Error creating user: {:?}", e);
-            ApiResponse::new(StatusCode::BAD_REQUEST, &format!("Error creating user: {}", e), Data::None)
+            ApiResponse::new(
+                StatusCode::BAD_REQUEST,
+                &format!("Error creating user: {}", e),
+                Data::None,
+            )
         }
     }
 }
@@ -124,9 +130,7 @@ pub async fn logout() -> impl IntoResponse {
         .unwrap()
 }
 
-pub async fn read(
-    State(app_state): State<Arc<AppState>>,
-) -> impl IntoResponse {
+pub async fn read(State(app_state): State<Arc<AppState>>) -> impl IntoResponse {
     match User::read_all(&app_state.pool).await {
         Ok(values) => {
             debug!("Users: {:?}", values);
@@ -138,7 +142,11 @@ pub async fn read(
         }
         Err(e) => {
             error!("Error reading values: {:?}", e);
-            ApiResponse::new(StatusCode::BAD_REQUEST, &format!("Error reading values: {}", e), Data::None)
+            ApiResponse::new(
+                StatusCode::BAD_REQUEST,
+                &format!("Error reading values: {}", e),
+                Data::None,
+            )
         }
     }
 }
@@ -163,8 +171,11 @@ pub async fn get_role(
         }
         Err(e) => {
             error!("Error reading role: {:?}", e);
-            ApiResponse::new(StatusCode::BAD_REQUEST, &format!("Error reading role: {}", e), Data::None)
+            ApiResponse::new(
+                StatusCode::BAD_REQUEST,
+                &format!("Error reading role: {}", e),
+                Data::None,
+            )
         }
     }
 }
-
