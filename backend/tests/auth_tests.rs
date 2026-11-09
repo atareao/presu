@@ -1,19 +1,18 @@
-use std::sync::Arc;
 use axum::{
     body::Body,
-    http::{header, Request, StatusCode},
+    http::{Request, StatusCode, header},
 };
+use backend::http;
 use backend::models::{
-    user::{NewUser, User, UserPass},
-    role::{NewRole, Role},
     AppState,
+    role::{NewRole, Role},
+    user::{NewUser, User, UserPass},
 };
+use sqlx::PgPool;
+use std::sync::Arc;
 use tower::ServiceExt;
 use uuid::Uuid;
-use sqlx::PgPool;
-use backend::http;
 
-#[path = "common.rs"]
 mod common;
 
 async fn setup() -> (PgPool, Role) {
@@ -70,7 +69,7 @@ async fn test_register() {
 #[tokio::test]
 async fn test_login() {
     let (pool, role) = setup().await;
-    
+
     let username = format!("U-TEST-{}", Uuid::new_v4());
     let email = format!("{}@test.com", username);
     let password = "password";
@@ -85,7 +84,7 @@ async fn test_login() {
     let _ = User::create(&pool, new_user).await.unwrap();
 
     let app = test_app(pool);
-    
+
     let user_pass = UserPass {
         email: email.clone(),
         password: password.to_string(),
@@ -122,7 +121,12 @@ async fn test_logout() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    let set_cookie = response.headers().get(header::SET_COOKIE).unwrap().to_str().unwrap();
+    let set_cookie = response
+        .headers()
+        .get(header::SET_COOKIE)
+        .unwrap()
+        .to_str()
+        .unwrap();
     assert!(set_cookie.contains("token=;"));
     assert!(set_cookie.contains("Max-Age=0"));
 }

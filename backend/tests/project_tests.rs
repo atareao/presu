@@ -1,10 +1,7 @@
-use backend::models::{
-    project::{Project, NewProject, ProjectParams},
-};
+use backend::models::project::{NewProject, Project, ProjectParams};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-#[path = "common.rs"]
 mod common;
 
 async fn setup() -> PgPool {
@@ -34,7 +31,10 @@ async fn test_read_project() {
         title: Some("Test Project".to_string()),
     };
     let project = Project::create(&pool, new_project).await.unwrap();
-    let read_project = Project::read_by_id(&pool, project.id).await.unwrap().unwrap();
+    let read_project = Project::read_by_id(&pool, project.id)
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!(read_project.id, project.id);
     assert_eq!(read_project.code, code);
     assert_eq!(read_project.title, "Test Project");

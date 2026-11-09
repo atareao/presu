@@ -1,10 +1,7 @@
-use sqlx::{
-    postgres::PgPoolOptions,
-    PgPool,
-};
 use dotenv::dotenv;
-use std::env;
 use once_cell::sync::Lazy;
+use sqlx::{PgPool, postgres::PgPoolOptions};
+use std::env;
 
 pub static TRACING: Lazy<()> = Lazy::new(|| {
     dotenv().ok();

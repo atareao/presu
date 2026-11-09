@@ -1,16 +1,13 @@
-
 use backend::models::{
-    price::{Price, NewPrice, PriceParams, PriceType},
-    unit::{Unit, NewUnit},
-    version::{Version, NewVersion},
+    price::{NewPrice, Price, PriceParams, PriceType},
+    unit::{NewUnit, Unit},
+    version::{NewVersion, Version},
 };
+use num_traits::cast::FromPrimitive;
+use rand::Rng;
 use sqlx::{PgPool, types::BigDecimal};
 use uuid::Uuid;
-use rand::Rng;
-use num_traits::cast::FromPrimitive;
-use serde_json::json;
 
-#[path = "common.rs"]
 mod common;
 
 async fn setup() -> (PgPool, Version, Unit) {
@@ -19,12 +16,26 @@ async fn setup() -> (PgPool, Version, Unit) {
 
     // Create a version
     let new_version = NewVersion {
-        name: format!("V-PRICE-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
+        name: format!(
+            "V-PRICE-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
     };
     let version = Version::create(&pool, new_version).await.unwrap();
 
     // Create a unit
-    let name = format!("U-PRICE-{}", Uuid::new_v4().to_string().chars().take(2).collect::<String>());
+    let name = format!(
+        "U-PRICE-{}",
+        Uuid::new_v4()
+            .to_string()
+            .chars()
+            .take(2)
+            .collect::<String>()
+    );
     let symbol = "ud".to_string();
     let new_unit = NewUnit {
         name: name.clone(),
@@ -43,7 +54,14 @@ async fn test_create_price() {
     let mut rng = rand::thread_rng();
     let new_price = NewPrice {
         version_id: version.id,
-        code: format!("P-CODE-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
+        code: format!(
+            "P-CODE-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
         description: "Test Price".to_string(),
         base_price: BigDecimal::from_f64(rng.gen_range(1.0..100.0)).unwrap(),
         unit_id: unit.id,
@@ -61,7 +79,14 @@ async fn test_read_price() {
     let mut rng = rand::thread_rng();
     let new_price = NewPrice {
         version_id: version.id,
-        code: format!("P-CODE-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
+        code: format!(
+            "P-CODE-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
         description: "Test Price".to_string(),
         base_price: BigDecimal::from_f64(rng.gen_range(1.0..100.0)).unwrap(),
         unit_id: unit.id,
@@ -79,7 +104,14 @@ async fn test_update_price() {
     let mut rng = rand::thread_rng();
     let new_price = NewPrice {
         version_id: version.id,
-        code: format!("P-CODE-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
+        code: format!(
+            "P-CODE-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
         description: "Test Price".to_string(),
         base_price: BigDecimal::from_f64(rng.gen_range(1.0..100.0)).unwrap(),
         unit_id: unit.id,
@@ -97,7 +129,14 @@ async fn test_delete_price() {
     let mut rng = rand::thread_rng();
     let new_price = NewPrice {
         version_id: version.id,
-        code: format!("P-CODE-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
+        code: format!(
+            "P-CODE-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
         description: "Test Price".to_string(),
         base_price: BigDecimal::from_f64(rng.gen_range(1.0..100.0)).unwrap(),
         unit_id: unit.id,
@@ -117,7 +156,14 @@ async fn test_list_prices() {
 
     let new_price1 = NewPrice {
         version_id: version.id,
-        code: format!("P-CODE-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
+        code: format!(
+            "P-CODE-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
         description: "Test Price 1".to_string(),
         base_price: BigDecimal::from_f64(rng.gen_range(1.0..100.0)).unwrap(),
         unit_id: unit.id,
@@ -127,7 +173,14 @@ async fn test_list_prices() {
 
     let new_price2 = NewPrice {
         version_id: version.id,
-        code: format!("P-CODE-{}", Uuid::new_v4().to_string().chars().take(10).collect::<String>()),
+        code: format!(
+            "P-CODE-{}",
+            Uuid::new_v4()
+                .to_string()
+                .chars()
+                .take(10)
+                .collect::<String>()
+        ),
         description: "Test Price 2".to_string(),
         base_price: BigDecimal::from_f64(rng.gen_range(1.0..100.0)).unwrap(),
         unit_id: unit.id,
