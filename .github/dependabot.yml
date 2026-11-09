@@ -18,7 +18,12 @@ updates:
     target-branch: "development"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 10
+    groups:
+      # Minor y patch en un solo PR por ecosistema; los majors van aparte.
+      cargo-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
 
   # Frontend — React + TypeScript
   - package-ecosystem: "npm"
@@ -26,4 +31,8 @@ updates:
     target-branch: "development"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 10
+    groups:
+      npm-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]

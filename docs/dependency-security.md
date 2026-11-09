@@ -26,6 +26,11 @@ pnpm test:run
 - Se mantiene react-router en la línea 7.x (7.18.5) en lugar de saltar a 8.x, y vite/vitest en sus majors actuales, para minimizar riesgo.
 - i18next-http-backend salta a 4.x (única línea parcheada); su export por defecto sigue siendo compatible con `src/App.tsx`.
 
+## Actualizaciones automáticas (Dependabot)
+`.github/dependabot.yml` agrupa las actualizaciones **minor y patch** de cada ecosistema en un único PR
+(`cargo-minor-patch`, `npm-minor-patch`). Los **majors** siguen llegando por separado porque requieren
+revisión manual (i18next 26, bcrypt-ts 9 y jest-dom 7 se revisaron así).
+
 ## Backend: JWT sin criptografía asimétrica
 
 `cargo audit` señalaba `rsa` (RUSTSEC-2023-0071, Marvin attack) y `crypto-bigint`
@@ -44,4 +49,5 @@ El backend únicamente **firma** tokens HS256 (no hay `decode` en ninguna ruta),
   (`rsa` y `libsqlite3-sys` no se compilan; `pin-utils` es unmaintained sin alternativa).
 
 ## Follow-ups
-- `pnpm lint` falla (preexistente): 36 errores `no-explicit-any` y variables sin usar.
+- `pnpm lint` ya pasa limpio (los 36 `no-explicit-any` y las variables sin usar se corrigieron).
+- `dist/` genera chunks >500 kB (`vendor-core` 1 MB, `vendor-pdf` 800 kB): pendiente de code-splitting.
