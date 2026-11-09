@@ -14,7 +14,7 @@ path = "src/main.rs"
 [dependencies]
 axum = { version = "0.8.7", features = ["macros", "json", "original-uri"] }
 axum-extra = { version = "0.10.3", features = ["cookie"] }
-base64 = "0.22.1"
+base64 = "0.23.1"
 bcrypt = "0.17.1"
 bigdecimal = { version = "0.4.9", features = ["serde"] }
 bytes = { version = "1.11.0", features = ["serde"] }
