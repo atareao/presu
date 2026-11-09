@@ -7,7 +7,7 @@ use axum::{
         header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     },
 };
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use http::{auth, fallback_404, health, stats};
 use models::{AppState, Error};
 use models::{
