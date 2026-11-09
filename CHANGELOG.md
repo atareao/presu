@@ -1,10 +1,31 @@
 # Changelog
+## [0.1.3] - 2026-11-09
+
+### Bug Fixes
+
+- *(backend)* Firma JWT con HMAC-SHA256 en lugar de jsonwebtoken
+
+### Dependencies
+
+- Aplica los 10 bumps pendientes de Dependabot y los agrupa
+
+### Documentation
+
+- Archiva PLAN-002 y añade HANDOFF de sesión
+- Archiva PLAN-001 (seguridad de dependencias frontend)
+
+### Miscellaneous Tasks
+
+- Añade cargo audit y documenta la protección de ramas
+- Ejecuta cargo audit dentro de backend/
+- Fuerza la ejecución del workflow
 ## [0.1.2] - 2026-11-09
 
 ### Miscellaneous Tasks
 
 - Release v0.1.2
 - *(release)* Sincroniza Cargo.lock tras el bump de versión
+- Release v0.1.2
 ## [0.1.1] - 2026-11-09
 
 ### Miscellaneous Tasks
