@@ -14,7 +14,7 @@ Integración continua y publicación de imagen Docker, replicando el esquema del
 ## Cómo funciona
 - **Backend (job `backend`)**: `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test`. Usa un servicio PostgreSQL efímero; los tests aplican las migraciones en `setup_pool`.
 - **Frontend (job `frontend`)**: pnpm 12 (`packageManager`), `tsc --noEmit`, `lint`, `pnpm audit --audit-level high`, `test:run`, `build`.
-- **Release**: en cada push a `main` (los commits `chore: release ...` se saltan para no entrar en bucle) detecta el bump desde los conventional commits (`!:`/`BREAKING CHANGE` → major, `feat` → minor, resto → patch), ejecuta `vampus upgrade`, genera `CHANGELOG.md` con `git-cliff`, commitea, crea y publica el tag `vX.Y.Z`, y sincroniza `development` con `main`.
+- **Release**: en cada push a `main` (los commits `chore: release ...` se saltan para no entrar en bucle) detecta el bump desde los conventional commits (`!:`/`BREAKING CHANGE` → major, `feat` → minor, resto → patch), ejecuta `vampus upgrade`, sincroniza `backend/Cargo.lock` (`cargo metadata`) porque el Dockerfile compila con `--locked`, genera `CHANGELOG.md` con `git-cliff`, commitea, crea y publica el tag `vX.Y.Z`, y sincroniza `development` con `main`.
 - **Imagen**: construye el Dockerfile, arranca el contenedor contra un Postgres efímero y valida `GET /api/v1/health` (con `RUST_ENV=production`). Si pasa, publica en `ghcr.io/atareao/presu` (`latest` + `sha-*`; en tags `vX.Y.Z` → `vX.Y.Z`, `X.Y`, `latest`).
 
 ## Variables/config

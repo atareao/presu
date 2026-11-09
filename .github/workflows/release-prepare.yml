@@ -74,6 +74,15 @@ jobs:
           echo "previous=${before}" >> "$GITHUB_OUTPUT"
           echo "value=${after}" >> "$GITHUB_OUTPUT"
 
+      - name: Sync Cargo.lock with the new version
+        run: |
+          set -euo pipefail
+          # vampus sube la versión en Cargo.toml pero no en Cargo.lock; el
+          # Dockerfile compila con `--locked`, así que sin esto todo build
+          # posterior a una release falla con "cannot update the lock file".
+          cargo metadata --manifest-path backend/Cargo.toml --format-version 1 > /dev/null
+          git diff --stat backend/Cargo.lock || true
+
       - name: Generate changelog
         run: git-cliff -o CHANGELOG.md --tag "v${{ steps.bump_version.outputs.value }}"
 
