@@ -4,6 +4,7 @@
 ### Miscellaneous Tasks
 
 - *(release)* Evita que vampus aborte por ficheros no versionados
+- Release v0.1.1
 ## [0.1.0] - 2026-11-09
 
 ### Bug Fixes
