@@ -212,8 +212,8 @@ importers:
         specifier: ^6.1.2
         version: 6.1.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       bcrypt-ts:
-        specifier: ^8.0.0
-        version: 8.0.0
+        specifier: ^9.0.3
+        version: 9.0.3
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1963,9 +1963,9 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
 
-  bcrypt-ts@8.0.0:
-    resolution: {integrity: sha512-v4X8KKKQfBQY5XHxrErsImUtDDGt53N6nKHgK9M72EN3GgJfxUimKCOGV9FTOPxVZzUdcyJEnmnpWMs3MgZq3w==}
-    engines: {node: '>=20'}
+  bcrypt-ts@9.0.3:
+    resolution: {integrity: sha512-7N21c3DP+jqYUlxhrx5b4GMzZaLw5kmokizcXny2PIDRxETkll7HNDo36mI2xClsxYdpX+eP77pEDPXYDNNQLw==}
+    engines: {node: '>=22'}
 
   bidi-js@1.0.3:
     resolution: {integrity: sha512-RKshQI1R3YQ+n9YJz2QQ147P66ELpa1FQEg20Dk8oW9t2KgLbpDLLp9aGZ7y8WHSshDknG0bknqGw5/tyCs5tw==}
@@ -5258,7 +5258,7 @@ snapshots:
 
   baseline-browser-mapping@2.11.35: {}
 
-  bcrypt-ts@8.0.0: {}
+  bcrypt-ts@9.0.3: {}
 
   bidi-js@1.0.3:
     dependencies:
