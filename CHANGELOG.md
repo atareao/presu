@@ -1,4 +1,9 @@
 # Changelog
+## [0.1.4] - 2026-11-13
+
+### Documentation
+
+- Añado licencia MIT
 ## [0.1.3] - 2026-11-09
 
 ### Bug Fixes
@@ -19,6 +24,7 @@
 - Añade cargo audit y documenta la protección de ramas
 - Ejecuta cargo audit dentro de backend/
 - Fuerza la ejecución del workflow
+- Release v0.1.3
 ## [0.1.2] - 2026-11-09
 
 ### Miscellaneous Tasks
